@@ -22,11 +22,11 @@ public class UploderController {
      *
      * @param bucketName  要存储的桶
      * @param objectName  要存储的对象
-     * @param fileName    要存储的文件具体路径
+     * @param uploadFileName    要存储的文件具体路径
      * @return
      */
     @PostMapping("/api/minio/upload")
-    public void MinioUpload(@RequestParam("bucketName") String bucketName,@RequestParam("objectName") String objectName, @RequestParam("fileName") String fileName ) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        sysUploaderService.uploadFile(bucketName,objectName,fileName);
+    public void MinioUpload(@RequestParam("bucketName") String bucketName,@RequestParam("objectName") String objectName, @RequestParam("uploadFileName") String uploadFileName ) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+        sysUploaderService.uploadFile(bucketName,objectName,uploadFileName);
     }
 }

@@ -24,7 +24,7 @@ public class SysUploaderServiceImpl implements SysUploaderService {
 
 
     @Override
-    public void uploadFile(String bucketName, String objectName, String fileName) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public void uploadFile(String bucketName, String objectName, String uploadFileName) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         MinioClient minioClient = minioInit.init();;
 
         try {
@@ -32,15 +32,14 @@ public class SysUploaderServiceImpl implements SysUploaderService {
                     UploadObjectArgs.builder()
                             .bucket(bucketName)
                             .object(objectName)
-                            .filename(fileName)
+                            .filename(uploadFileName)
                             .build()
             );
         }catch (MinioException e){
             System.out.println("Error occurred:" + e);
             System.out.println("HTTP trace " + e.httpTrace());
         }
-
-
     }
+
 
 }
