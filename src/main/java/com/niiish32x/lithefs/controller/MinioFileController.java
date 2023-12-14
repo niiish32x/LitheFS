@@ -1,5 +1,6 @@
 package com.niiish32x.lithefs.controller;
 
+import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.service.MinioFileService;
@@ -21,11 +22,13 @@ public class MinioFileController {
         minioFileService.downloadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
     }
 
-
+    @PostMapping("/api/minio/downloadAll")
+    public void MinioDownload(@RequestBody MinioDownloadAllReqDTO requestParam){
+        minioFileService.downloadAllFile(requestParam.getBucketName(), requestParam.getDownloadPath());
+    }
 
     @PostMapping("/api/minio/upload")
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        System.out.println("xxx");
         minioFileService.uploadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getUploadFileName());
     }
 }

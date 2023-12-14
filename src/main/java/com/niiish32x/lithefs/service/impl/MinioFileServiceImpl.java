@@ -2,11 +2,11 @@ package com.niiish32x.lithefs.service.impl;
 
 import com.niiish32x.lithefs.service.MinioFileService;
 import com.niiish32x.lithefs.tools.MinioInit;
-import io.minio.DownloadObjectArgs;
-import io.minio.MinioClient;
-import io.minio.UploadObjectArgs;
+import io.minio.*;
 import io.minio.errors.*;
+import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -42,7 +42,6 @@ public class MinioFileServiceImpl implements MinioFileService {
     public void downloadFile(String bucketName, String objectName, String downloadPath) {
         MinioClient minioClient = minioInit.init();
         try {
-
             minioClient.downloadObject(
                     DownloadObjectArgs.builder()
                             .bucket(bucketName)
@@ -59,4 +58,50 @@ public class MinioFileServiceImpl implements MinioFileService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    @SneakyThrows
+    public void downloadAllFile(String bucketName, String downloadPath){
+        MinioClient minioClient = minioInit.init();
+
+        Iterable<Result<Item>> objects = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .build()
+        );
+
+        for (Result<Item> object: objects){
+            System.out.println(object.get().objectName());
+            minioClient.downloadObject(
+                    DownloadObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(object.get().objectName())
+                            .filename(downloadPath + "/"  + object.get().objectName())
+                            .build()
+            );
+        }
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
