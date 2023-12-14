@@ -8,3 +8,6 @@ minio:
   bucketName: test              # 存储桶bucket名称
   accessKey: minioadmin           # 用户名
   secretKey: minioadmin           # 密码
+
+custom:
+  minioListenedBucket: listenedtest
