@@ -27,7 +27,7 @@ public class MinioDownloadTask {
      * 定时从Minio指定的bucket 下载文件 文件至本地指定的文件夹
      */
     @SneakyThrows
-    @Scheduled(cron = "* * * * *")  // 每分钟从minio指定的bucket下载文件到本地的文件夹
+    @Scheduled(cron = "0 */1 * * * ?")  // 每分钟从minio指定的bucket下载文件到本地的文件夹
     public void download(){
         System.out.println(listenedBucket);
         Path path = Paths.get("./tmp/download");
