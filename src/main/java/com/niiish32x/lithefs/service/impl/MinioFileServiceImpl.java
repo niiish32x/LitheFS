@@ -19,44 +19,30 @@ public class MinioFileServiceImpl implements MinioFileService {
 
     private final MinioInit minioInit;
 
+    @SneakyThrows
     @Override
     public void uploadFile(String bucketName, String objectName, String uploadFileName) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         MinioClient minioClient = minioInit.init();
-
-        try {
-            minioClient.uploadObject(
-                    UploadObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .filename(uploadFileName)
-                            .build()
+        minioClient.uploadObject(
+                UploadObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .filename(uploadFileName)
+                        .build()
             );
-        }catch (MinioException e){
-            System.out.println("Error occurred:" + e);
-            System.out.println("HTTP trace " + e.httpTrace());
-        }
     }
 
-
+    @SneakyThrows
     @Override
     public void downloadFile(String bucketName, String objectName, String downloadPath) {
         MinioClient minioClient = minioInit.init();
-        try {
-            minioClient.downloadObject(
-                    DownloadObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .filename(downloadPath + "/" + objectName)
-                            .build()
+        minioClient.downloadObject(
+                DownloadObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .filename(downloadPath + "/" + objectName)
+                        .build()
             );
-
-            System.out.println("文件下载成功！");
-
-        } catch (MinioException | IOException e) {
-            System.out.println("文件下载失败：" + e.getMessage());
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
