@@ -23,8 +23,18 @@ public class MinioFileController {
     }
 
     @PostMapping("/api/minio/downloadAll")
-    public void MinioDownload(@RequestBody MinioDownloadAllReqDTO requestParam){
+    public void MinioDownloadAll(@RequestBody MinioDownloadAllReqDTO requestParam){
         minioFileService.downloadAllFile(requestParam.getBucketName(), requestParam.getDownloadPath());
+    }
+
+    @PostMapping("/api/minio/downloadOverwrite")
+    public void MinioDownloadOverwrite(@RequestBody MinioDownloadReqDTO requestParam){
+        minioFileService.downloadFileOverwrite(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
+    }
+
+    @PostMapping("/api/minio/downloadAllOverwrite")
+    public void MinioDownloadAllOverwrite(@RequestBody MinioDownloadAllReqDTO requestParam){
+        minioFileService.downloadAllFileOverwrite(requestParam.getBucketName(), requestParam.getDownloadPath());
     }
 
     @PostMapping("/api/minio/upload")

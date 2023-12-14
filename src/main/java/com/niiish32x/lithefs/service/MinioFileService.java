@@ -14,4 +14,10 @@ public interface MinioFileService {
 
     @SneakyThrows
     void downloadAllFile(String bucketName, String downloadPath);
+
+    @SneakyThrows
+    void downloadFileOverwrite(String bucketName, String objectName, String downloadPath);
+
+    @SneakyThrows
+    void downloadAllFileOverwrite(String bucketName, String downloadPath);
 }

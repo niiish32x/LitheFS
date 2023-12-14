@@ -10,6 +10,9 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -57,7 +60,57 @@ public class MinioFileServiceImpl implements MinioFileService {
         );
 
         for (Result<Item> object: objects){
-            System.out.println(object.get().objectName());
+            minioClient.downloadObject(
+                    DownloadObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(object.get().objectName())
+                            .filename(downloadPath + "/"  + object.get().objectName())
+                            .build()
+            );
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public void downloadFileOverwrite(String bucketName, String objectName, String downloadPath){
+        MinioClient minioClient = minioInit.init();
+        Path targetFile = Paths.get(downloadPath + "/" + objectName);
+        if (Files.exists(targetFile)){
+            // 删除原来文件
+            Files.delete(targetFile);
+        }
+
+        // 然后再进行下载
+        minioClient.downloadObject(
+                DownloadObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .filename(downloadPath + "/" + objectName)
+                        .build()
+        );
+    }
+
+
+    @Override
+    @SneakyThrows
+    public void downloadAllFileOverwrite(String bucketName, String downloadPath){
+        MinioClient minioClient = minioInit.init();
+
+        Iterable<Result<Item>> objects = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .build()
+        );
+
+        for (Result<Item> object: objects){
+            String objectName = object.get().objectName();
+            Path targetFile = Paths.get(downloadPath + "/" + objectName);
+
+            if (Files.exists(targetFile)){
+                // 删除原来文件
+                Files.delete(targetFile);
+            }
+
             minioClient.downloadObject(
                     DownloadObjectArgs.builder()
                             .bucket(bucketName)
