@@ -37,6 +37,11 @@ public class MinioFileController {
         minioFileService.downloadAllFileOverwrite(requestParam.getBucketName(), requestParam.getDownloadPath());
     }
 
+    @PostMapping("/api/minio/shardingDownload")
+    public void MinioShardingDownload(@RequestBody MinioDownloadReqDTO requestParam){
+        minioFileService.shardingDownloadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
+    }
+
     @PostMapping("/api/minio/upload")
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         minioFileService.uploadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getUploadFileName());

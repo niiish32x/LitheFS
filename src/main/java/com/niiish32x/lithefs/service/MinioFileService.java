@@ -20,4 +20,6 @@ public interface MinioFileService {
 
     @SneakyThrows
     void downloadAllFileOverwrite(String bucketName, String downloadPath);
+
+    void shardingDownloadFile(String bucketName, String objectName, String downloadPath);
 }
