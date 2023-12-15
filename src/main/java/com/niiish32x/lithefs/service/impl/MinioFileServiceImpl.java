@@ -145,12 +145,9 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         // 线程分片下载线程
         CountDownLatch latch1 = new CountDownLatch(1);
-        MinioSharingFileManagementThread minioSharingFileManagementThread = new MinioSharingFileManagementThread(latch1);
-        minioSharingFileManagementThread.setBucketName(bucketName);
-        minioSharingFileManagementThread.setDownloadPath(downloadPath);
-        minioSharingFileManagementThread.setMinioClient(minioClient);
+        MinioSharingFileManagementThread minioSharingFileManagementThread
+                = new MinioSharingFileManagementThread(minioClient,bucketName,objectName,downloadPath,latch1);
         minioSharingFileManagementThread.setChunkSize(chunkSize);
-        minioSharingFileManagementThread.setObjectName(objectName);
         minioSharingFileManagementThread.setObjectSize(objectSize);
         minioSharingFileManagementThread.run();
         ArrayList<String> chunkFileList = minioSharingFileManagementThread.getChunkFileList();

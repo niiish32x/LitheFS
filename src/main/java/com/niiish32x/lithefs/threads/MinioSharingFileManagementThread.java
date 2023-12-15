@@ -33,33 +33,32 @@ public class MinioSharingFileManagementThread implements Runnable{
     private ArrayList<String> chunkFileList = new ArrayList<>();
     private MinioClient minioClient;
 
+    public MinioSharingFileManagementThread(MinioClient minioClient,String bucketName,String objectName,String downloadPath,CountDownLatch latch){
+        this.minioClient = minioClient;
+        this.downloadPath = downloadPath;
+        this.bucketName = bucketName;
+        this.objectName = objectName;
+        this.latch = latch;
+    }
+
     @SneakyThrows
     @Override
     public void run() {
         // 分片数量
         long numChunks = (long) Math.ceil((double) objectSize / chunkSize);
-        System.out.println(numChunks);
+        CountDownLatch countDownLatch = new CountDownLatch((int) numChunks);
         // 进行分片下载
         for (int i = 0 ; i < numChunks ; i++){
             // 当前分片的范围
             long offset = i * chunkSize;
             long length = Math.min(chunkSize, objectSize -  offset);
 
-            InputStream chunkObject = minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .offset(offset)
-                            .length(length)
-                            .build()
-            );
-
-            String localFilePath = downloadPath + "/" + offset + objectName ;
-            chunkFileList.add(localFilePath);
-            Path localFile = Path.of(localFilePath);
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkObject);
-            Files.copy(bufferedInputStream,localFile, StandardCopyOption.REPLACE_EXISTING);
+            MinioChunkFileDownloadThread minioChunkFileDownloadThread
+                    = new MinioChunkFileDownloadThread(minioClient,bucketName,objectName,downloadPath,offset,length,chunkFileList,countDownLatch);
+            minioChunkFileDownloadThread.run();
         }
+
+        countDownLatch.await();
         latch.countDown();
     }
 }
