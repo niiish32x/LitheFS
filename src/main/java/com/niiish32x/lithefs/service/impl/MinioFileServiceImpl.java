@@ -9,15 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -143,6 +142,9 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 分片数量
         long numChunks = (long) Math.ceil((double) objectSize / chunkSize);
 
+
+        ArrayList<String> chunkFileList = new ArrayList<>();
+
         // 进行分片下载
         for (int i = 0 ; i < numChunks ; i++){
             // 当前分片的范围
@@ -159,9 +161,29 @@ public class MinioFileServiceImpl implements MinioFileService {
             );
 
             String localFilePath = downloadPath + "/" + offset + objectName ;
+            chunkFileList.add(localFilePath);
             Path localFile = Path.of(localFilePath);
             BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkObject);
             Files.copy(bufferedInputStream,localFile, StandardCopyOption.REPLACE_EXISTING);
+
+
+            // 合并文件
+            String mergeFile =  downloadPath + "/" + objectName;
+            FileOutputStream fos = new FileOutputStream(mergeFile);
+
+            for (String chunkFile : chunkFileList){
+                FileInputStream fis = new FileInputStream(chunkFile);
+                byte [] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = fis.read(buffer)) != -1){
+                    fos.write(buffer,0,bytesRead);
+                }
+
+                fis.close();
+            }
+            fos.close();
+
+
 
         }
     }
