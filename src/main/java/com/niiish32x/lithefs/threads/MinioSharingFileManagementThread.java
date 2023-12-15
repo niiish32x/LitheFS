@@ -19,7 +19,6 @@ import java.util.concurrent.CountDownLatch;
 
 @Data
 public class MinioSharingFileManagementThread implements Runnable{
-    private final CountDownLatch latch;
     // 下载文件目标大小
     private long objectSize;
     // 分片大小
@@ -33,12 +32,11 @@ public class MinioSharingFileManagementThread implements Runnable{
     private ArrayList<String> chunkFileList = new ArrayList<>();
     private MinioClient minioClient;
 
-    public MinioSharingFileManagementThread(MinioClient minioClient,String bucketName,String objectName,String downloadPath,CountDownLatch latch){
+    public MinioSharingFileManagementThread(MinioClient minioClient,String bucketName,String objectName,String downloadPath){
         this.minioClient = minioClient;
         this.downloadPath = downloadPath;
         this.bucketName = bucketName;
         this.objectName = objectName;
-        this.latch = latch;
     }
 
     @SneakyThrows
@@ -59,6 +57,23 @@ public class MinioSharingFileManagementThread implements Runnable{
         }
 
         countDownLatch.await();
-        latch.countDown();
+
+        // 用于线程计数
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // 分片文件合并线程 对分片进行合并
+        MinioShardingFileMergeThread minioShardingFileMergeThread = new MinioShardingFileMergeThread(latch);
+        minioShardingFileMergeThread.setChunkFileList(chunkFileList);
+        minioShardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
+        minioShardingFileMergeThread.run();
+
+        // 只有等到所有分片文件合并完 再进行分片进行删除
+        latch.await();
+
+        // 分片文件删除线程 删除分片文件
+        MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
+        minioShardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
+        minioShardingChunkFileDeleteThread.run();
+
     }
 }

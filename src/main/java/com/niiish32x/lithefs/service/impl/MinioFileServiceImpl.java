@@ -144,31 +144,12 @@ public class MinioFileServiceImpl implements MinioFileService {
 
 
         // 线程分片下载线程
-        CountDownLatch latch1 = new CountDownLatch(1);
         MinioSharingFileManagementThread minioSharingFileManagementThread
-                = new MinioSharingFileManagementThread(minioClient,bucketName,objectName,downloadPath,latch1);
+                = new MinioSharingFileManagementThread(minioClient,bucketName,objectName,downloadPath);
         minioSharingFileManagementThread.setChunkSize(chunkSize);
         minioSharingFileManagementThread.setObjectSize(objectSize);
         minioSharingFileManagementThread.run();
-        ArrayList<String> chunkFileList = minioSharingFileManagementThread.getChunkFileList();
-        latch1.await();
 
-        // 用于线程计数
-        CountDownLatch latch2 = new CountDownLatch(1);
-
-        // 分片文件合并线程 对分片进行合并
-        MinioShardingFileMergeThread minioShardingFileMergeThread = new MinioShardingFileMergeThread(latch2);
-        minioShardingFileMergeThread.setChunkFileList(chunkFileList);
-        minioShardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
-        minioShardingFileMergeThread.run();
-
-        // 只有等到所有分片文件合并完 再进行分片进行删除
-        latch2.await();
-
-        // 分片文件删除线程 删除分片文件
-        MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
-        minioShardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
-        minioShardingChunkFileDeleteThread.run();
     }
 }
 
