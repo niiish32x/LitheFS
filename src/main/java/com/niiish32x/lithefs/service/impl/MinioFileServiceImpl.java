@@ -1,6 +1,7 @@
 package com.niiish32x.lithefs.service.impl;
 
 import com.niiish32x.lithefs.service.MinioFileService;
+import com.niiish32x.lithefs.threads.ShardingFileMergeThread;
 import com.niiish32x.lithefs.tools.MinioInit;
 import io.minio.*;
 import io.minio.errors.*;
@@ -17,6 +18,7 @@ import java.nio.file.StandardCopyOption;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 @Service
 @RequiredArgsConstructor
@@ -165,26 +167,32 @@ public class MinioFileServiceImpl implements MinioFileService {
             Path localFile = Path.of(localFilePath);
             BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkObject);
             Files.copy(bufferedInputStream,localFile, StandardCopyOption.REPLACE_EXISTING);
+        }
 
+        // 用于线程计数
+        CountDownLatch latch = new CountDownLatch(1);
 
-            // 合并文件
-            String mergeFile =  downloadPath + "/" + objectName;
-            FileOutputStream fos = new FileOutputStream(mergeFile);
+        // 使用分片文件合并线程 对分片进行合并
+        ShardingFileMergeThread shardingFileMergeThread = new ShardingFileMergeThread(latch);
+        shardingFileMergeThread.setChunkFileList(chunkFileList);
+        shardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
+        shardingFileMergeThread.run();
 
-            for (String chunkFile : chunkFileList){
-                FileInputStream fis = new FileInputStream(chunkFile);
-                byte [] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = fis.read(buffer)) != -1){
-                    fos.write(buffer,0,bytesRead);
+        // 只有等到所有分片文件合并完 再进行分片进行删除
+        latch.await();
+        System.out.println(chunkFileList);
+        // 删除之前的分片 文件
+        for (String chunkFile : chunkFileList){
+            File file = new File(chunkFile);
+            if (file.exists()){
+                if (file.delete()){
+                    System.out.println("删除分片" + chunkFile);
+                }else {
+                    System.out.println("分片"+chunkFile + "删除失败");
                 }
-
-                fis.close();
+            }else {
+                System.out.println("分片" + chunkFile + "不存在");
             }
-            fos.close();
-
-
-
         }
     }
 }
