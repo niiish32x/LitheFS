@@ -14,13 +14,13 @@ import java.util.concurrent.CountDownLatch;
  * 执行合并文件的线程
  */
 @Data
-public class ShardingFileMergeThread implements Runnable{
+public class MinioShardingFileMergeThread implements Runnable{
     private final CountDownLatch latch;
 
     private ArrayList<String>chunkFileList;
     private String mergeFile;
 
-    public ShardingFileMergeThread(CountDownLatch latch) {
+    public MinioShardingFileMergeThread(CountDownLatch latch) {
         this.latch = latch;
     }
 

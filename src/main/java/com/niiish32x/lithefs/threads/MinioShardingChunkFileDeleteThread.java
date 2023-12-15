@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 @Data
-public class ShardingChunkFileDeleteThread implements Runnable{
+public class MinioShardingChunkFileDeleteThread implements Runnable{
     private ArrayList<String> chunkFileList;
 
     @Override

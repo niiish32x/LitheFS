@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch;
  */
 
 @Data
-public class SharingFileManagementThread implements Runnable{
+public class MinioSharingFileManagementThread implements Runnable{
     private final CountDownLatch latch;
     // 下载文件目标大小
     private long objectSize;

@@ -1,9 +1,9 @@
 package com.niiish32x.lithefs.service.impl;
 
 import com.niiish32x.lithefs.service.MinioFileService;
-import com.niiish32x.lithefs.threads.ShardingChunkFileDeleteThread;
-import com.niiish32x.lithefs.threads.ShardingFileMergeThread;
-import com.niiish32x.lithefs.threads.SharingFileManagementThread;
+import com.niiish32x.lithefs.threads.MinioShardingChunkFileDeleteThread;
+import com.niiish32x.lithefs.threads.MinioShardingFileMergeThread;
+import com.niiish32x.lithefs.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.tools.MinioInit;
 import io.minio.*;
 import io.minio.errors.*;
@@ -142,34 +142,36 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 分片大小
         long chunkSize = 4 * 1024 * 1024; // 4MB
 
+
+        // 线程分片下载线程
         CountDownLatch latch1 = new CountDownLatch(1);
-        SharingFileManagementThread sharingFileManagementThread = new SharingFileManagementThread(latch1);
-        sharingFileManagementThread.setBucketName(bucketName);
-        sharingFileManagementThread.setDownloadPath(downloadPath);
-        sharingFileManagementThread.setMinioClient(minioClient);
-        sharingFileManagementThread.setChunkSize(chunkSize);
-        sharingFileManagementThread.setObjectName(objectName);
-        sharingFileManagementThread.setObjectSize(objectSize);
-        sharingFileManagementThread.run();
-        ArrayList<String> chunkFileList = sharingFileManagementThread.getChunkFileList();
+        MinioSharingFileManagementThread minioSharingFileManagementThread = new MinioSharingFileManagementThread(latch1);
+        minioSharingFileManagementThread.setBucketName(bucketName);
+        minioSharingFileManagementThread.setDownloadPath(downloadPath);
+        minioSharingFileManagementThread.setMinioClient(minioClient);
+        minioSharingFileManagementThread.setChunkSize(chunkSize);
+        minioSharingFileManagementThread.setObjectName(objectName);
+        minioSharingFileManagementThread.setObjectSize(objectSize);
+        minioSharingFileManagementThread.run();
+        ArrayList<String> chunkFileList = minioSharingFileManagementThread.getChunkFileList();
         latch1.await();
 
         // 用于线程计数
         CountDownLatch latch2 = new CountDownLatch(1);
 
         // 分片文件合并线程 对分片进行合并
-        ShardingFileMergeThread shardingFileMergeThread = new ShardingFileMergeThread(latch2);
-        shardingFileMergeThread.setChunkFileList(chunkFileList);
-        shardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
-        shardingFileMergeThread.run();
+        MinioShardingFileMergeThread minioShardingFileMergeThread = new MinioShardingFileMergeThread(latch2);
+        minioShardingFileMergeThread.setChunkFileList(chunkFileList);
+        minioShardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
+        minioShardingFileMergeThread.run();
 
         // 只有等到所有分片文件合并完 再进行分片进行删除
         latch2.await();
 
         // 分片文件删除线程 删除分片文件
-        ShardingChunkFileDeleteThread shardingChunkFileDeleteThread = new ShardingChunkFileDeleteThread();
-        shardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
-        shardingChunkFileDeleteThread.run();
+        MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
+        minioShardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
+        minioShardingChunkFileDeleteThread.run();
     }
 }
 
