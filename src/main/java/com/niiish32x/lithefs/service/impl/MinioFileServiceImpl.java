@@ -1,6 +1,7 @@
 package com.niiish32x.lithefs.service.impl;
 
 import com.niiish32x.lithefs.service.MinioFileService;
+import com.niiish32x.lithefs.threads.ShardingChunkFileDeleteThread;
 import com.niiish32x.lithefs.threads.ShardingFileMergeThread;
 import com.niiish32x.lithefs.tools.MinioInit;
 import io.minio.*;
@@ -172,7 +173,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 用于线程计数
         CountDownLatch latch = new CountDownLatch(1);
 
-        // 使用分片文件合并线程 对分片进行合并
+        // 分片文件合并线程 对分片进行合并
         ShardingFileMergeThread shardingFileMergeThread = new ShardingFileMergeThread(latch);
         shardingFileMergeThread.setChunkFileList(chunkFileList);
         shardingFileMergeThread.setMergeFile(downloadPath + "/" + objectName);
@@ -181,19 +182,11 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 只有等到所有分片文件合并完 再进行分片进行删除
         latch.await();
         System.out.println(chunkFileList);
-        // 删除之前的分片 文件
-        for (String chunkFile : chunkFileList){
-            File file = new File(chunkFile);
-            if (file.exists()){
-                if (file.delete()){
-                    System.out.println("删除分片" + chunkFile);
-                }else {
-                    System.out.println("分片"+chunkFile + "删除失败");
-                }
-            }else {
-                System.out.println("分片" + chunkFile + "不存在");
-            }
-        }
+
+        // 分片文件删除线程 删除分片文件
+        ShardingChunkFileDeleteThread shardingChunkFileDeleteThread = new ShardingChunkFileDeleteThread();
+        shardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
+        shardingChunkFileDeleteThread.run();
     }
 }
 
