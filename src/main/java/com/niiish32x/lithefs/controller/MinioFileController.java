@@ -19,31 +19,31 @@ public class MinioFileController {
 
     @PostMapping("/api/minio/download")
     public void MinioDownload(@RequestBody MinioDownloadReqDTO requestParam){
-        minioFileService.downloadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
+        minioFileService.downloadFile(requestParam);
     }
 
     @PostMapping("/api/minio/downloadAll")
     public void MinioDownloadAll(@RequestBody MinioDownloadAllReqDTO requestParam){
-        minioFileService.downloadAllFile(requestParam.getBucketName(), requestParam.getDownloadPath());
+        minioFileService.downloadAllFile(requestParam);
     }
 
     @PostMapping("/api/minio/downloadOverwrite")
     public void MinioDownloadOverwrite(@RequestBody MinioDownloadReqDTO requestParam){
-        minioFileService.downloadFileOverwrite(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
+        minioFileService.downloadFileOverwrite(requestParam);
     }
 
     @PostMapping("/api/minio/downloadAllOverwrite")
     public void MinioDownloadAllOverwrite(@RequestBody MinioDownloadAllReqDTO requestParam){
-        minioFileService.downloadAllFileOverwrite(requestParam.getBucketName(), requestParam.getDownloadPath());
+        minioFileService.downloadAllFileOverwrite(requestParam);
     }
 
     @PostMapping("/api/minio/shardingDownload")
     public void MinioShardingDownload(@RequestBody MinioDownloadReqDTO requestParam){
-        minioFileService.shardingDownloadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getDownloadPath());
+        minioFileService.shardingDownloadFile(requestParam);
     }
 
     @PostMapping("/api/minio/upload")
-    public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        minioFileService.uploadFile(requestParam.getBucketName(), requestParam.getObjectName(), requestParam.getUploadFileName());
+    public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) {
+        minioFileService.uploadFile(requestParam);
     }
 }

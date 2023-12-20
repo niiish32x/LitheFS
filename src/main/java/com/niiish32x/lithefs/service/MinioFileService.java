@@ -1,5 +1,8 @@
 package com.niiish32x.lithefs.service;
 
+import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import io.minio.errors.*;
 import lombok.SneakyThrows;
 
@@ -8,18 +11,25 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public interface MinioFileService {
-    void uploadFile(String bucketName, String objectName, String uploadFileName) throws IOException, ServerException, InsufficientDataException, ErrorResponseException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
-    void downloadFile(String bucketName, String objectName, String downloadPath);
+    @SneakyThrows
+    void uploadFile(MinioUploadReqDTO requestParam);
+
+    @SneakyThrows
+    void downloadFile(MinioDownloadReqDTO minioDownloadReqDTO);
 
 
     @SneakyThrows
-    void downloadAllFile(String bucketName, String downloadPath);
+    void downloadAllFile(MinioDownloadAllReqDTO requestParam);
+
+
+    // String bucketName, String objectName, String downloadPath
+    @SneakyThrows
+    void downloadFileOverwrite(MinioDownloadReqDTO requestParam);
 
     @SneakyThrows
-    void downloadFileOverwrite(String bucketName, String objectName, String downloadPath);
+    void downloadAllFileOverwrite(MinioDownloadAllReqDTO requestParam);
+
 
     @SneakyThrows
-    void downloadAllFileOverwrite(String bucketName, String downloadPath);
-
-    void shardingDownloadFile(String bucketName, String objectName, String downloadPath);
+    void shardingDownloadFile(MinioDownloadReqDTO requestParam);
 }
