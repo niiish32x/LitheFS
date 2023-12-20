@@ -46,4 +46,9 @@ public class MinioFileController {
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) {
         minioFileService.uploadFile(requestParam);
     }
+
+    @PostMapping("/api/minio/shardingUpload")
+    public void MinioShardingUpload(@RequestBody MinioUploadReqDTO requestParam) {
+        minioFileService.uploadFile(requestParam);
+    }
 }

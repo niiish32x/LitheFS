@@ -15,6 +15,9 @@ public interface MinioFileService {
     void uploadFile(MinioUploadReqDTO requestParam);
 
     @SneakyThrows
+    void shardingUploadFile(MinioUploadReqDTO requestParam);
+
+    @SneakyThrows
     void downloadFile(MinioDownloadReqDTO minioDownloadReqDTO);
 
 
