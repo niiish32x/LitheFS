@@ -1,6 +1,13 @@
 server:
   port: 8088
 
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://10.12.41.201:3306/lithefs?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+
 # MinIO 配置
 minio:
   endpoint: http://10.12.41.201:9000     # MinIO服务地址
