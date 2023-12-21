@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.0</version>
+		<version>3.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.niiish32x</groupId>
@@ -18,12 +18,22 @@
 		<java.version>17</java.version>
 		<mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
 		<mybatis-plus.version>3.5.3.1</mybatis-plus.version>
-		<spring-boot-starter-jdbc.version>3.2.0</spring-boot-starter-jdbc.version>
+		<spring-boot-starter-jdbc.version>3.1.0</spring-boot-starter-jdbc.version>
+		<spring-data-redis.version>3.1.0</spring-data-redis.version>
+
 		<mysql-connector-java.version>8.0.28</mysql-connector-java.version>
-		<minio.version>8.5.4</minio.version>
+
+		<minio.version>8.3.4</minio.version>
 		<hutool-all.version>5.8.23</hutool-all.version>
 		<commons-fileupload.version>1.5</commons-fileupload.version>
 		<aws-java-sdk-s3.version>1.12.621</aws-java-sdk-s3.version>
+		<aws-java-sdk-core.version>1.12.621</aws-java-sdk-core.version>
+		<sharding-sphere.version>5.4.1</sharding-sphere.version>
+		<aliyun-sdk-oss.version>3.8.0</aliyun-sdk-oss.version>
+		<software.amazon.awssdk.version>2.22.2</software.amazon.awssdk.version>
+		<swagger-annotations.version>1.6.2</swagger-annotations.version>
+		<jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
+		<javax.annotation-api.version>1.3.2</javax.annotation-api.version>
 	</properties>
 
 	<dependencies>
@@ -74,25 +84,6 @@
 			<groupId>com.baomidou</groupId>
 			<artifactId>mybatis-plus-boot-starter</artifactId>
 			<version>${mybatis-plus.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.mybatis</groupId>
-					<artifactId>mybatis-spring</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.mybatis</groupId>
-			<artifactId>mybatis-spring</artifactId>
-			<version>3.0.3</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.baomidou</groupId>
-			<artifactId>mybatis-plus</artifactId>
-			<version>${mybatis-plus.version}</version>
 		</dependency>
 
 		<dependency>
@@ -112,6 +103,49 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>${mysql-connector-java.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.shardingsphere</groupId>
+			<artifactId>shardingsphere-jdbc-core</artifactId>
+			<version>${sharding-sphere.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-core</artifactId>
+			<version>${aws-java-sdk-core.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>${software.amazon.awssdk.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+			<version>${swagger-annotations.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+			<version>${spring-data-redis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+			<version>${javax.annotation-api.version}</version>
 		</dependency>
 
 	</dependencies>
