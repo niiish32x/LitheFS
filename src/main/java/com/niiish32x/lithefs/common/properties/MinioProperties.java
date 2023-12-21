@@ -1,14 +1,15 @@
-package com.niiish32x.lithefs.common.config;
+package com.niiish32x.lithefs.common.properties;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-@Configuration
 @Data
-public class MinIOConfig {
+@Component
+@ConfigurationProperties(prefix = "minio")
+public class MinioProperties {
 
     @Value("${minio.endpoint}")
     private String endpoint;
