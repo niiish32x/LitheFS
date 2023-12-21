@@ -4,13 +4,8 @@ import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.service.MinioFileService;
-import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,8 +42,4 @@ public class MinioFileController {
         minioFileService.uploadFile(requestParam);
     }
 
-    @PostMapping("/api/minio/shardingUpload")
-    public void MinioShardingUpload(@RequestBody MinioUploadReqDTO requestParam) {
-        minioFileService.uploadFile(requestParam);
-    }
 }
