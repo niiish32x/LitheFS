@@ -16,7 +16,7 @@ public class MinioProperties {
     @Value("${minio.fileHost}")
     private String fileHost;
     @Value("${minio.bucketName}")
-    private String bucketName;
+    private String bucket;
     @Value("${minio.accessKey}")
     private String accessKey;
     @Value("${minio.secretKey}")

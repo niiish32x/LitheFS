@@ -1,16 +1,11 @@
-package com.niiish32x.lithefs.common.result;
+package com.niiish32x.lithefs.common.convention;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.niiish32x.lithefs.common.enums.ResultEnum;
 
-import java.io.Serial;
 import java.io.Serializable;
 
-@Setter
-@Getter
 public class Result<T> implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -92,4 +87,31 @@ public class Result<T> implements Serializable {
         return new Result<T>(code, msg, data);
     }
 
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
 }

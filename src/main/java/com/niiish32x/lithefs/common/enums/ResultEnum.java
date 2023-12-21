@@ -1,10 +1,5 @@
-package com.niiish32x.lithefs.common.result;
+package com.niiish32x.lithefs.common.enums;
 
-
-import lombok.Getter;
-
-
-@Getter
 public enum ResultEnum {
     //未知错误
 
@@ -38,4 +33,11 @@ public enum ResultEnum {
         this.msg = msg;
     }
 
+    public Integer getCode() {
+        return code;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
 }
