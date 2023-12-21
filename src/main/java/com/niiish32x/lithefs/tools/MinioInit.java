@@ -1,23 +1,21 @@
 package com.niiish32x.lithefs.tools;
 
 
-import com.niiish32x.lithefs.common.config.MinIOConfig;
+import com.niiish32x.lithefs.common.properties.MinioProperties;
 import io.minio.MinioClient;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class MinioInit {
-    private final  MinIOConfig minIOConfig;
+    private final MinioProperties minIOProperties;
     public MinioClient init(){
-        System.out.println(minIOConfig.getEndpoint());
+        System.out.println(minIOProperties.getEndpoint());
         MinioClient minioClient =
                 MinioClient.builder()
-                        .endpoint(minIOConfig.getEndpoint())
-                        .credentials(minIOConfig.getAccessKey(), minIOConfig.getSecretKey())
+                        .endpoint(minIOProperties.getEndpoint())
+                        .credentials(minIOProperties.getAccessKey(), minIOProperties.getSecretKey())
                         .build();
 
         return minioClient;
