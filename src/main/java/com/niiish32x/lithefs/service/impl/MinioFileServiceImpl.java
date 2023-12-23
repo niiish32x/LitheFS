@@ -11,17 +11,16 @@ import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 @Service
 @RequiredArgsConstructor
-public class MinioFileServiceImpl implements MinioFileService  {
+public class MinioFileServiceImpl implements MinioFileService {
 
     private final MinioInit minioInit;
-
     @SneakyThrows
     @Override
     public void uploadFile(MinioUploadReqDTO requestParam) {
@@ -35,7 +34,12 @@ public class MinioFileServiceImpl implements MinioFileService  {
             );
     }
 
+//    @SneakyThrows
+//    public void shardingUploadFile(String bucketName, String objectName, String uploadFileName){
+//
+//    }uploadFileName
 
+    // String bucketName, String objectName, String downloadPath
     @SneakyThrows
     @Override
     public void downloadFile(MinioDownloadReqDTO minioDownloadReqDTO) {

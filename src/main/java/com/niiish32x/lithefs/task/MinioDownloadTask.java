@@ -1,16 +1,8 @@
 package com.niiish32x.lithefs.task;
 
-import com.niiish32x.lithefs.service.MinioFileService;
-import com.niiish32x.lithefs.tools.MinioInit;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 @RequiredArgsConstructor
