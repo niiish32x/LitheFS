@@ -1,7 +1,6 @@
 package com.niiish32x.lithefs.tools;
 
 
-import com.niiish32x.lithefs.common.properties.MinioProperties;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
