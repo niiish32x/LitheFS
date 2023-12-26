@@ -1,5 +1,10 @@
 package com.niiish32x.lithefs.controller;
 
+import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
+import com.niiish32x.lithefs.service.MinioFileService;
+import com.niiish32x.lithefs.service.UploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -7,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class MinioFileController {
     private final MinioFileService minioFileService;
-
+    private final UploadService uploadService;
     @PostMapping("/api/minio/download")
     public void MinioDownload(@RequestBody MinioDownloadReqDTO requestParam){
         minioFileService.downloadFile(requestParam);
@@ -36,5 +41,11 @@ public class MinioFileController {
     @PostMapping("/api/minio/upload")
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) {
         minioFileService.uploadFile(requestParam);
+    }
+
+
+    @PostMapping("/api/minio/testUpload")
+    public void testUpload(@RequestBody MinioUploadReqDTO requestParam) {
+        uploadService.initMultiPartUpload(requestParam.getBucketName(), requestParam.getObjectName());
     }
 }

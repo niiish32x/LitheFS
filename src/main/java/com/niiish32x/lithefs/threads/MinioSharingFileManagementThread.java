@@ -11,7 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static ch.qos.logback.core.CoreConstants.CORE_POOL_SIZE;
+import static ch.qos.logback.core.CoreConstants.MAX_POOL_SIZE;
 
 /**
  * 将大文件进行分片 并将各个分片分派给个线程 进行多线程下载
@@ -45,6 +51,18 @@ public class MinioSharingFileManagementThread implements Runnable{
         // 分片数量
         long numChunks = (long) Math.ceil((double) objectSize / chunkSize);
         CountDownLatch countDownLatch = new CountDownLatch((int) numChunks);
+
+
+        // 线程池
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                CORE_POOL_SIZE,
+                MAX_POOL_SIZE,
+                10,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(100),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+
+
         // 进行分片下载
         for (int i = 0 ; i < numChunks ; i++){
             // 当前分片的范围
@@ -53,7 +71,9 @@ public class MinioSharingFileManagementThread implements Runnable{
 
             MinioChunkFileDownloadThread minioChunkFileDownloadThread
                     = new MinioChunkFileDownloadThread(minioClient,bucketName,objectName,downloadPath,offset,length,chunkFileList,countDownLatch);
-            minioChunkFileDownloadThread.run();
+
+            threadPoolExecutor.execute(minioChunkFileDownloadThread);
+//            minioChunkFileDownloadThread.run();
         }
 
         countDownLatch.await();

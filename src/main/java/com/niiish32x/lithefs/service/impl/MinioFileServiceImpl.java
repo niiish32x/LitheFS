@@ -34,10 +34,6 @@ public class MinioFileServiceImpl implements MinioFileService {
             );
     }
 
-//    @SneakyThrows
-//    public void shardingUploadFile(String bucketName, String objectName, String uploadFileName){
-//
-//    }uploadFileName
 
     // String bucketName, String objectName, String downloadPath
     @SneakyThrows
@@ -143,7 +139,7 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public void shardingDownloadFile(MinioDownloadReqDTO requestParam){
         String bucketName = requestParam.getBucketName();
-        String objectName = requestParam.getBucketName();
+        String objectName = requestParam.getObjectName();
         String downloadPath = requestParam.getDownloadPath();
 
         MinioClient minioClient = minioInit.init();
@@ -157,7 +153,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 目标大小
         long objectSize = statedObject.size();
         // 分片大小
-        long chunkSize = 4 * 1024 * 1024; // 4MB
+        long chunkSize = 1 * 1024 * 1024; // 4MB
 
 
         // 线程分片下载线程
