@@ -11,6 +11,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StopWatch;
 
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -68,6 +70,14 @@ public class MinioSharingFileManagementThread implements Runnable{
                 new ArrayBlockingQueue<>(10),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
+        Set<String>set = stringRedisTemplate.opsForSet().members(bucketName + "/" + objectName);
+
+        // 先从Redis中去获取之前已经下载过的分片地址
+        if (set != null){
+            chunkFileList = new CopyOnWriteArrayList<>(set.stream().toList());
+        }
+
+//        chunkFileList.stream().forEach(e-> System.out.println(e));
 
 
         // 进行分片下载
@@ -102,8 +112,7 @@ public class MinioSharingFileManagementThread implements Runnable{
         // 只有等到所有分片文件合并完 再进行分片进行删除
         latch.await();
 
-        // 完成所有分片下载后 即可删除Redis中hash 因为不再需要断点续传
-        stringRedisTemplate.delete(bucketName + "/" + objectName);
+
 
 //        stopWatch.stop();
 //        System.out.println("完成所有分片的合并 + 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
@@ -113,7 +122,12 @@ public class MinioSharingFileManagementThread implements Runnable{
         MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
         minioShardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
         threadPoolExecutor.execute(minioShardingChunkFileDeleteThread);
+        threadPoolExecutor.shutdown();
+
+        // 删除Redis中hash 因为不再需要断点续传
+        stringRedisTemplate.delete(bucketName + "/" + objectName);
 
 //        minioShardingChunkFileDeleteThread.run();
     }
 }
+

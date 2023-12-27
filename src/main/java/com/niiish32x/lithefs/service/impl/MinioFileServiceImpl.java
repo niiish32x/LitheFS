@@ -273,15 +273,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 目标大小
         long objectSize = statedObject.size();
         // 分片大小
-        long chunkSize = 6 * 1024 * 1024; // 4MB
-
-//        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-//        16,
-//        32,
-//        10,
-//        TimeUnit.SECONDS,
-//        new ArrayBlockingQueue<>(10),
-//        new ThreadPoolExecutor.CallerRunsPolicy());
+        long chunkSize = 8 * 1024 * 1024; // 4MB
 
 
         // 线程分片下载线程

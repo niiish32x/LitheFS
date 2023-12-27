@@ -54,8 +54,9 @@ public class MinioChunkFileDownloadThread implements Runnable{
     @SneakyThrows
     @Override
     public void run() {
+        String localFilePath = downloadPath + "/" + offset + objectName ;
         // 在Redis中 已有该分片的下载信息
-        if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(bucketName + "/" + objectName, String.valueOf(offset)))){
+        if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(bucketName + "/" + objectName, localFilePath))){
             log.info("分片: " + offset + " 已完成下载");
             countDownLatch.countDown();
             return;
@@ -70,7 +71,7 @@ public class MinioChunkFileDownloadThread implements Runnable{
                         .build()
         );
 
-        String localFilePath = downloadPath + "/" + offset + objectName ;
+
 
 
 
@@ -80,7 +81,7 @@ public class MinioChunkFileDownloadThread implements Runnable{
         Files.copy(bufferedInputStream,localFile, StandardCopyOption.REPLACE_EXISTING);
 
         // 完成分片下载后 将该分片的信息 存入hash
-        stringRedisTemplate.opsForSet().add(bucketName + "/" + objectName,String.valueOf(offset));
+        stringRedisTemplate.opsForSet().add(bucketName + "/" + objectName,localFilePath);
 
 
         countDownLatch.countDown();
