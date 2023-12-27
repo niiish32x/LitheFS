@@ -57,6 +57,7 @@ public class MinioChunkFileDownloadThread implements Runnable{
         // 在Redis中 已有该分片的下载信息
         if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(bucketName + "/" + objectName, String.valueOf(offset)))){
             log.info("分片: " + offset + " 已完成下载");
+            countDownLatch.countDown();
             return;
         }
 
