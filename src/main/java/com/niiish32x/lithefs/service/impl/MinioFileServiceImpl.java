@@ -2,6 +2,7 @@ package com.niiish32x.lithefs.service.impl;
 
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
+import com.niiish32x.lithefs.dto.req.MinioRemoveFileDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
@@ -10,7 +11,6 @@ import com.niiish32x.lithefs.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.tools.MinioInit;
 import io.minio.*;
 import io.minio.messages.Item;
-import io.minio.messages.Upload;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +38,32 @@ public class MinioFileServiceImpl implements MinioFileService {
     private final RBloomFilter<String> rBloomFilter;
     private final StringRedisTemplate stringRedisTemplate;
 
+    @Override
+    @SneakyThrows
+    public void removeFile(MinioRemoveFileDTO requestParam){
+        MinioClient minioClient = minioInit.init();
+        String bucketName = requestParam.getBucketName();
+        String objectName = requestParam.getObjectName();
+
+        log.info("开始删除文件");
+
+        // 删除Redis中的内容 否则 由于秒传判断后续就无法 再上传文件
+        String key = (String) stringRedisTemplate.opsForHash().get("MinioUploadFileHash",objectName);
+        stringRedisTemplate.opsForHash().delete("MinioUploadFileHash",key);
+
+        // 删除文件
+        minioClient.removeObject(
+                RemoveObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .build()
+        );
+
+
+
+        log.info("完成文件删除");
+    }
+
     @SneakyThrows
     @Override
     public void uploadFile(MinioUploadReqDTO requestParam) {
@@ -47,18 +73,24 @@ public class MinioFileServiceImpl implements MinioFileService {
         String objectName = requestParam.getObjectName();
 
 
+        log.info("开始执行文件上传");
+
         // 文件秒传传 判断
         Digester md5 = new Digester(DigestAlgorithm.MD5);
         File file = new File(requestParam.getUploadFileName());
         String digestHex = md5.digestHex(file);
         if (rBloomFilter.contains(digestHex)){
-            System.out.println("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
+            log.warn("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
+//            System.out.println();
             return;
         }
+
         String uploadURL = bucketName+ "/" +objectName;
         rBloomFilter.add(digestHex);
+        // 存储 文件编码 对应 文件的放置的位置的URL 用于秒传操作时 直接输出文件具体位子
         stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
-
+        // 存储 对象名 及其 对应编码 用于后续的删除操作
+        stringRedisTemplate.opsForHash().put("MinioUploadFileHash",objectName,digestHex);
 
         minioClient.uploadObject(
                 UploadObjectArgs.builder()
@@ -68,6 +100,7 @@ public class MinioFileServiceImpl implements MinioFileService {
                         .build()
         );
 
+        log.info("完成文件上传");
     }
 
 
@@ -75,16 +108,32 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public void multiPartUploadFile(MinioUploadReqDTO requestParam) {
         MinioClient minioClient = minioInit.init();
-        System.out.println(requestParam.getUploadFileName());
-        System.out.println(requestParam.getObjectName());
+        String bucketName = requestParam.getBucketName();
+        String objectName = requestParam.getObjectName();
+
+        log.info("开始执行分片文件上传");
+
         File file = new File(requestParam.getUploadFileName());
+
+
+        // 文件秒传传 判断
+        Digester md5 = new Digester(DigestAlgorithm.MD5);
+        String digestHex = md5.digestHex(file);
+        if (rBloomFilter.contains(digestHex)){
+            log.warn("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
+//            System.out.println();
+            return;
+        }
+        String uploadURL = bucketName+ "/" +objectName;
+        rBloomFilter.add(digestHex);
+        stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
 
         InputStream inputStream = new FileInputStream(file);
 
         minioClient.putObject(
                 PutObjectArgs.builder()
-                        .bucket(requestParam.getBucketName())
-                        .object(requestParam.getObjectName())
+                        .bucket(bucketName)
+                        .object(objectName)
                         .stream(inputStream,file.length(),5 * 1024  * 1024)
                         .build()
         );

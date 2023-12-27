@@ -2,10 +2,14 @@ package com.niiish32x.lithefs.service;
 
 import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioRemoveFileDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import lombok.SneakyThrows;
 
 public interface MinioFileService {
+    @SneakyThrows
+    void removeFile(MinioRemoveFileDTO requestParam);
+
     @SneakyThrows
     void uploadFile(MinioUploadReqDTO requestParam);
 

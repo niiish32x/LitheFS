@@ -2,6 +2,7 @@ package com.niiish32x.lithefs.controller;
 
 import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.dto.req.MinioRemoveFileDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.service.MinioFileService;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,8 @@ public class MinioFileController {
         minioFileService.multiPartUploadFile(requestParam);
     }
 
-
+    @DeleteMapping("/api/minio/remove")
+    public void MinioRemoveFile(@RequestBody MinioRemoveFileDTO requestParam){
+        minioFileService.removeFile(requestParam);
+    }
 }
