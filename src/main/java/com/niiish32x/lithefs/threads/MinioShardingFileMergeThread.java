@@ -7,6 +7,8 @@ import lombok.SneakyThrows;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -17,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 public class MinioShardingFileMergeThread implements Runnable{
     private final CountDownLatch latch;
 
-    private ArrayList<String>chunkFileList;
+    private CopyOnWriteArrayList<String> chunkFileList;
     private String mergeFile;
 
     public MinioShardingFileMergeThread(CountDownLatch latch) {

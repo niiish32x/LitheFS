@@ -1,23 +1,13 @@
 package com.niiish32x.lithefs.threads;
 
-import io.minio.GetObjectArgs;
+
 import io.minio.MinioClient;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.springframework.util.StopWatch;
 
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
-import static ch.qos.logback.core.CoreConstants.CORE_POOL_SIZE;
-import static ch.qos.logback.core.CoreConstants.MAX_POOL_SIZE;
+import java.util.concurrent.*;
 
 /**
  * 将大文件进行分片 并将各个分片分派给个线程 进行多线程下载
@@ -35,7 +25,7 @@ public class MinioSharingFileManagementThread implements Runnable{
     private String objectName;
     // 本地下载地址
     private String downloadPath;
-    private ArrayList<String> chunkFileList = new ArrayList<>();
+    private CopyOnWriteArrayList<String> chunkFileList = new CopyOnWriteArrayList<>();
     private MinioClient minioClient;
 
     public MinioSharingFileManagementThread(MinioClient minioClient,String bucketName,String objectName,String downloadPath){
@@ -53,13 +43,17 @@ public class MinioSharingFileManagementThread implements Runnable{
         CountDownLatch countDownLatch = new CountDownLatch((int) numChunks);
 
 
-        // 线程池
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
+
+//         线程池
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                CORE_POOL_SIZE,
-                MAX_POOL_SIZE,
+                500,
+                800,
                 10,
-                TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(100),
+                TimeUnit.DAYS,
+                new ArrayBlockingQueue<>(10),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
 
@@ -71,16 +65,20 @@ public class MinioSharingFileManagementThread implements Runnable{
 
             MinioChunkFileDownloadThread minioChunkFileDownloadThread
                     = new MinioChunkFileDownloadThread(minioClient,bucketName,objectName,downloadPath,offset,length,chunkFileList,countDownLatch);
-
+//
             threadPoolExecutor.execute(minioChunkFileDownloadThread);
 //            minioChunkFileDownloadThread.run();
         }
 
         countDownLatch.await();
 
+
         // 用于线程计数
         CountDownLatch latch = new CountDownLatch(1);
 
+        stopWatch.stop();
+        System.out.println("完成所有分片的下载 + 耗时:" + stopWatch.getTotalTimeSeconds()+ "秒");
+//        stopWatch.start();
         // 分片文件合并线程 对分片进行合并
         MinioShardingFileMergeThread minioShardingFileMergeThread = new MinioShardingFileMergeThread(latch);
         minioShardingFileMergeThread.setChunkFileList(chunkFileList);
@@ -89,6 +87,10 @@ public class MinioSharingFileManagementThread implements Runnable{
 
         // 只有等到所有分片文件合并完 再进行分片进行删除
         latch.await();
+
+//        stopWatch.stop();
+//        System.out.println("完成所有分片的合并 + 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
+
 
         // 分片文件删除线程 删除分片文件
         MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
