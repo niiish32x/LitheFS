@@ -150,7 +150,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         MinioClient minioClient = minioInit.init();
         log.info("开始单文件下载");
         StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+//        stopWatch.start();
 
         minioClient.downloadObject(
                 DownloadObjectArgs.builder()
@@ -160,7 +160,7 @@ public class MinioFileServiceImpl implements MinioFileService {
                         .build()
             );
 
-        stopWatch.stop();
+//        stopWatch.stop();
         System.out.println("完成单文件下载， 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
     }
 
@@ -254,7 +254,7 @@ public class MinioFileServiceImpl implements MinioFileService {
     @SneakyThrows
     @Override
     public void shardingDownloadFile(MinioDownloadReqDTO requestParam){
-//        log.info("开始分片文件下载");
+        log.info("开始分片文件下载");
 //        StopWatch stopWatch = new StopWatch();
 //        stopWatch.start();
 
@@ -273,23 +273,27 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 目标大小
         long objectSize = statedObject.size();
         // 分片大小
-        long chunkSize = 80 * 1024 * 1024; // 4MB
+        long chunkSize = 6 * 1024 * 1024; // 4MB
 
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-        500,
-        800,
-        10,
-        TimeUnit.DAYS,
-        new ArrayBlockingQueue<>(10),
-        new ThreadPoolExecutor.CallerRunsPolicy());
+//        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+//        16,
+//        32,
+//        10,
+//        TimeUnit.SECONDS,
+//        new ArrayBlockingQueue<>(10),
+//        new ThreadPoolExecutor.CallerRunsPolicy());
 
 
         // 线程分片下载线程
         MinioSharingFileManagementThread minioSharingFileManagementThread
-                = new MinioSharingFileManagementThread(minioClient,bucketName,objectName,downloadPath);
+                = new MinioSharingFileManagementThread(minioClient,stringRedisTemplate,bucketName,objectName,downloadPath);
         minioSharingFileManagementThread.setChunkSize(chunkSize);
         minioSharingFileManagementThread.setObjectSize(objectSize);
-        threadPoolExecutor.execute(minioSharingFileManagementThread);
+        minioSharingFileManagementThread.run();
+//        threadPoolExecutor.execute(minioSharingFileManagementThread);
+
+        log.info("完成分片下载");
+
 //        minioSharingFileManagementThread.run();
 
 //        stopWatch.stop();

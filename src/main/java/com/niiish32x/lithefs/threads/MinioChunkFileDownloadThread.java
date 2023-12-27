@@ -5,7 +5,12 @@ import io.minio.DownloadObjectArgs;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -21,8 +26,10 @@ import java.util.concurrent.CountDownLatch;
  */
 
 @Data
+@Slf4j
 public class MinioChunkFileDownloadThread implements Runnable{
     private CountDownLatch countDownLatch;
+    private final StringRedisTemplate stringRedisTemplate;
     private long offset;
     private long length;
     private MinioClient minioClient;
@@ -31,7 +38,8 @@ public class MinioChunkFileDownloadThread implements Runnable{
     private String downloadPath;
     private CopyOnWriteArrayList<String> chunkFileList;
 
-    public MinioChunkFileDownloadThread(MinioClient minioClient, String bucketName, String objectName, String downloadPath, long offset, long length ,CopyOnWriteArrayList<String>  chunkFileList, CountDownLatch countDownLatch){
+
+    public MinioChunkFileDownloadThread(MinioClient minioClient, StringRedisTemplate stringRedisTemplate,  String bucketName, String objectName, String downloadPath, long offset, long length ,CopyOnWriteArrayList<String>  chunkFileList, CountDownLatch countDownLatch){
         this.countDownLatch = countDownLatch;
         this.minioClient = minioClient;
         this.bucketName = bucketName;
@@ -40,11 +48,17 @@ public class MinioChunkFileDownloadThread implements Runnable{
         this.offset = offset;
         this.length = length;
         this.chunkFileList = chunkFileList;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @SneakyThrows
     @Override
     public void run() {
+        // 在Redis中 已有该分片的下载信息
+        if (Boolean.TRUE.equals(stringRedisTemplate.opsForSet().isMember(bucketName + "/" + objectName, String.valueOf(offset)))){
+            log.info("分片: " + offset + " 已完成下载");
+            return;
+        }
 
         InputStream chunkObject = minioClient.getObject(
                 GetObjectArgs.builder()
@@ -58,10 +72,16 @@ public class MinioChunkFileDownloadThread implements Runnable{
         String localFilePath = downloadPath + "/" + offset + objectName ;
 
 
+
         chunkFileList.add(localFilePath);
         Path localFile = Path.of(localFilePath);
         BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkObject);
         Files.copy(bufferedInputStream,localFile, StandardCopyOption.REPLACE_EXISTING);
+
+        // 完成分片下载后 将该分片的信息 存入hash
+        stringRedisTemplate.opsForSet().add(bucketName + "/" + objectName,String.valueOf(offset));
+
+
         countDownLatch.countDown();
     }
 }

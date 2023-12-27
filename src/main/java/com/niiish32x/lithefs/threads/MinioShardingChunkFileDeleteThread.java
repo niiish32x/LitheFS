@@ -1,11 +1,13 @@
 package com.niiish32x.lithefs.threads;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 @Data
 public class MinioShardingChunkFileDeleteThread implements Runnable{
     private CopyOnWriteArrayList<String> chunkFileList;
@@ -24,6 +26,6 @@ public class MinioShardingChunkFileDeleteThread implements Runnable{
                 System.out.println("分片" + chunkFile + "不存在");
             }
         }
-
+        log.info("完成所有分片的删除");
     }
 }

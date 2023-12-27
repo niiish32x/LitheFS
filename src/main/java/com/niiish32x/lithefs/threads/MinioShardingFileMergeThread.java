@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -32,9 +33,10 @@ public class MinioShardingFileMergeThread implements Runnable{
     @Override
     public void run() {
         FileOutputStream fos = new FileOutputStream(mergeFile);
+        Collections.sort(chunkFileList);
         for (String chunkFile : chunkFileList){
             FileInputStream fis = new FileInputStream(chunkFile);
-            byte [] buffer = new byte[1024];
+            byte [] buffer = new byte[1024 * 1024];
             int bytesRead;
             while ((bytesRead = fis.read(buffer)) != -1){
                 fos.write(buffer,0,bytesRead);

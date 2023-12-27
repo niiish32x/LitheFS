@@ -3,7 +3,11 @@ package com.niiish32x.lithefs.threads;
 
 import io.minio.MinioClient;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StopWatch;
 
 
@@ -14,7 +18,10 @@ import java.util.concurrent.*;
  */
 
 @Data
+@Slf4j
+@RequiredArgsConstructor
 public class MinioSharingFileManagementThread implements Runnable{
+    private StringRedisTemplate stringRedisTemplate;
     // 下载文件目标大小
     private long objectSize;
     // 分片大小
@@ -28,16 +35,21 @@ public class MinioSharingFileManagementThread implements Runnable{
     private CopyOnWriteArrayList<String> chunkFileList = new CopyOnWriteArrayList<>();
     private MinioClient minioClient;
 
-    public MinioSharingFileManagementThread(MinioClient minioClient,String bucketName,String objectName,String downloadPath){
+    public MinioSharingFileManagementThread(MinioClient minioClient,StringRedisTemplate stringRedisTemplate,String bucketName,String objectName,String downloadPath){
         this.minioClient = minioClient;
         this.downloadPath = downloadPath;
         this.bucketName = bucketName;
         this.objectName = objectName;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @SneakyThrows
     @Override
     public void run() {
+
+//        // 初始化 断点下载 信息
+//        stringRedisTemplate.opsForHash().put(bucketName + "/" + objectName ,"init","init");
+
         // 分片数量
         long numChunks = (long) Math.ceil((double) objectSize / chunkSize);
         CountDownLatch countDownLatch = new CountDownLatch((int) numChunks);
@@ -49,12 +61,13 @@ public class MinioSharingFileManagementThread implements Runnable{
 
 //         线程池
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                500,
-                800,
+                16,
+                32,
                 10,
-                TimeUnit.DAYS,
+                TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(10),
                 new ThreadPoolExecutor.CallerRunsPolicy());
+
 
 
         // 进行分片下载
@@ -64,7 +77,7 @@ public class MinioSharingFileManagementThread implements Runnable{
             long length = Math.min(chunkSize, objectSize -  offset);
 
             MinioChunkFileDownloadThread minioChunkFileDownloadThread
-                    = new MinioChunkFileDownloadThread(minioClient,bucketName,objectName,downloadPath,offset,length,chunkFileList,countDownLatch);
+                    = new MinioChunkFileDownloadThread(minioClient,stringRedisTemplate,bucketName,objectName,downloadPath,offset,length,chunkFileList,countDownLatch);
 //
             threadPoolExecutor.execute(minioChunkFileDownloadThread);
 //            minioChunkFileDownloadThread.run();
@@ -77,6 +90,7 @@ public class MinioSharingFileManagementThread implements Runnable{
         CountDownLatch latch = new CountDownLatch(1);
 
         stopWatch.stop();
+        log.info("完成所有分片的下载");
         System.out.println("完成所有分片的下载 + 耗时:" + stopWatch.getTotalTimeSeconds()+ "秒");
 //        stopWatch.start();
         // 分片文件合并线程 对分片进行合并
@@ -88,14 +102,18 @@ public class MinioSharingFileManagementThread implements Runnable{
         // 只有等到所有分片文件合并完 再进行分片进行删除
         latch.await();
 
+        // 完成所有分片下载后 即可删除Redis中hash 因为不再需要断点续传
+        stringRedisTemplate.delete(bucketName + "/" + objectName);
+
 //        stopWatch.stop();
 //        System.out.println("完成所有分片的合并 + 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
 
-
+        log.info("开始删除已下载的分片");
         // 分片文件删除线程 删除分片文件
         MinioShardingChunkFileDeleteThread minioShardingChunkFileDeleteThread = new MinioShardingChunkFileDeleteThread();
         minioShardingChunkFileDeleteThread.setChunkFileList(chunkFileList);
-        minioShardingChunkFileDeleteThread.run();
+        threadPoolExecutor.execute(minioShardingChunkFileDeleteThread);
 
+//        minioShardingChunkFileDeleteThread.run();
     }
 }
