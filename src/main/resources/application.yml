@@ -7,6 +7,10 @@ spring:
     username: root
     password: 123456
     url: jdbc:mysql://10.12.41.201:3306/lithefs?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+  data:
+    redis:
+      host: 10.12.41.201
+      port: 6379
 
 # MinIO 配置
 minio:
@@ -15,6 +19,5 @@ minio:
   bucketName: test              # 存储桶 bucket名称
   accessKey: minioadmin           # 用户名
   secretKey: minioadmin           # 密码
-
 custom:
   minioListenedBucket: listenedtest # 自动下载 所监听的minio桶

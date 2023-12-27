@@ -1,5 +1,7 @@
 package com.niiish32x.lithefs.service.impl;
 
+import cn.hutool.crypto.digest.DigestAlgorithm;
+import cn.hutool.crypto.digest.Digester;
 import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
@@ -8,9 +10,12 @@ import com.niiish32x.lithefs.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.tools.MinioInit;
 import io.minio.*;
 import io.minio.messages.Item;
+import io.minio.messages.Upload;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -30,17 +35,39 @@ import java.util.concurrent.TimeUnit;
 public class MinioFileServiceImpl implements MinioFileService {
 
     private final MinioInit minioInit;
+    private final RBloomFilter<String> rBloomFilter;
+    private final StringRedisTemplate stringRedisTemplate;
+
     @SneakyThrows
     @Override
     public void uploadFile(MinioUploadReqDTO requestParam) {
         MinioClient minioClient = minioInit.init();
+        String fileName = requestParam.getUploadFileName();
+        String bucketName = requestParam.getBucketName();
+        String objectName = requestParam.getObjectName();
+
+
+        // 文件秒传传 判断
+        Digester md5 = new Digester(DigestAlgorithm.MD5);
+        File file = new File(requestParam.getUploadFileName());
+        String digestHex = md5.digestHex(file);
+        if (rBloomFilter.contains(digestHex)){
+            System.out.println("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
+            return;
+        }
+        String uploadURL = bucketName+ "/" +objectName;
+        rBloomFilter.add(digestHex);
+        stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
+
+
         minioClient.uploadObject(
                 UploadObjectArgs.builder()
-                        .bucket(requestParam.getBucketName())
-                        .object(requestParam.getObjectName())
-                        .filename(requestParam.getUploadFileName())
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .filename(fileName)
                         .build()
-            );
+        );
+
     }
 
 

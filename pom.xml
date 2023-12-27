@@ -20,20 +20,21 @@
 		<mybatis-plus.version>3.5.3.1</mybatis-plus.version>
 		<spring-boot-starter-jdbc.version>3.1.0</spring-boot-starter-jdbc.version>
 		<spring-data-redis.version>3.1.0</spring-data-redis.version>
+		<redisson-spring-boot-starter.version>3.25.2</redisson-spring-boot-starter.version>
 
 		<mysql-connector-java.version>8.0.28</mysql-connector-java.version>
 
 		<minio.version>8.3.4</minio.version>
 		<hutool-all.version>5.8.23</hutool-all.version>
 		<commons-fileupload.version>1.5</commons-fileupload.version>
-		<aws-java-sdk-s3.version>1.12.621</aws-java-sdk-s3.version>
-		<aws-java-sdk-core.version>1.12.621</aws-java-sdk-core.version>
+<!--		<aws-java-sdk-s3.version>1.12.621</aws-java-sdk-s3.version>-->
+<!--		<aws-java-sdk-core.version>1.12.621</aws-java-sdk-core.version>-->
 		<sharding-sphere.version>5.4.1</sharding-sphere.version>
-		<aliyun-sdk-oss.version>3.8.0</aliyun-sdk-oss.version>
-		<software.amazon.awssdk.version>2.22.2</software.amazon.awssdk.version>
-		<swagger-annotations.version>1.6.2</swagger-annotations.version>
-		<jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>
-		<javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+<!--		<aliyun-sdk-oss.version>3.8.0</aliyun-sdk-oss.version>-->
+<!--&lt;!&ndash;		<software.amazon.awssdk.version>2.22.2</software.amazon.awssdk.version>&ndash;&gt;-->
+<!--		<swagger-annotations.version>1.6.2</swagger-annotations.version>-->
+<!--		<jakarta.validation-api.version>2.0.2</jakarta.validation-api.version>-->
+<!--		<javax.annotation-api.version>1.3.2</javax.annotation-api.version>-->
 	</properties>
 
 	<dependencies>
@@ -61,11 +62,11 @@
 			<version>${commons-fileupload.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-s3</artifactId>
-			<version>${aws-java-sdk-s3.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.amazonaws</groupId>-->
+<!--			<artifactId>aws-java-sdk-s3</artifactId>-->
+<!--			<version>${aws-java-sdk-s3.version}</version>-->
+<!--		</dependency>-->
 
 		<dependency>
 			<groupId>cn.hutool</groupId>
@@ -112,41 +113,43 @@
 		</dependency>
 
 
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-core</artifactId>
-			<version>${aws-java-sdk-core.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.amazonaws</groupId>-->
+<!--			<artifactId>aws-java-sdk-core</artifactId>-->
+<!--			<version>${aws-java-sdk-core.version}</version>-->
+<!--		</dependency>-->
 
 
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>s3</artifactId>
-			<version>${software.amazon.awssdk.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>software.amazon.awssdk</groupId>-->
+<!--			<artifactId>s3</artifactId>-->
+<!--			<version>${software.amazon.awssdk.version}</version>-->
+<!--		</dependency>-->
 
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-			<version>${swagger-annotations.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>io.swagger</groupId>-->
+<!--			<artifactId>swagger-annotations</artifactId>-->
+<!--			<version>${swagger-annotations.version}</version>-->
+<!--		</dependency>-->
 
-		<dependency>
-			<groupId>jakarta.validation</groupId>
-			<artifactId>jakarta.validation-api</artifactId>
-			<version>2.0.2</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-redis</artifactId>
 			<version>${spring-data-redis.version}</version>
 		</dependency>
+
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-			<version>${javax.annotation-api.version}</version>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson-spring-boot-starter</artifactId>
+			<version>${redisson-spring-boot-starter.version}</version>
 		</dependency>
+
+<!--		<dependency>-->
+<!--			<groupId>javax.annotation</groupId>-->
+<!--			<artifactId>javax.annotation-api</artifactId>-->
+<!--			<version>${javax.annotation-api.version}</version>-->
+<!--		</dependency>-->
 
 	</dependencies>
 
