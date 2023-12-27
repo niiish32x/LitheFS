@@ -1,6 +1,7 @@
 package com.niiish32x.lithefs.threads;
 
 
+import io.minio.DownloadObjectArgs;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -27,9 +29,9 @@ public class MinioChunkFileDownloadThread implements Runnable{
     private String bucketName;
     private String objectName;
     private String downloadPath;
-    private ArrayList<String> chunkFileList;
+    private CopyOnWriteArrayList<String> chunkFileList;
 
-    public MinioChunkFileDownloadThread(MinioClient minioClient, String bucketName, String objectName, String downloadPath, long offset, long length ,ArrayList<String> chunkFileList, CountDownLatch countDownLatch){
+    public MinioChunkFileDownloadThread(MinioClient minioClient, String bucketName, String objectName, String downloadPath, long offset, long length ,CopyOnWriteArrayList<String>  chunkFileList, CountDownLatch countDownLatch){
         this.countDownLatch = countDownLatch;
         this.minioClient = minioClient;
         this.bucketName = bucketName;
@@ -43,6 +45,7 @@ public class MinioChunkFileDownloadThread implements Runnable{
     @SneakyThrows
     @Override
     public void run() {
+
         InputStream chunkObject = minioClient.getObject(
                 GetObjectArgs.builder()
                         .bucket(bucketName)
@@ -53,6 +56,8 @@ public class MinioChunkFileDownloadThread implements Runnable{
         );
 
         String localFilePath = downloadPath + "/" + offset + objectName ;
+
+
         chunkFileList.add(localFilePath);
         Path localFile = Path.of(localFilePath);
         BufferedInputStream bufferedInputStream = new BufferedInputStream(chunkObject);

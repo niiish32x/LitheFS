@@ -10,12 +10,21 @@ import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MinioFileServiceImpl implements MinioFileService {
@@ -35,11 +44,37 @@ public class MinioFileServiceImpl implements MinioFileService {
     }
 
 
+    @SneakyThrows
+    @Override
+    public void multiPartUploadFile(MinioUploadReqDTO requestParam) {
+        MinioClient minioClient = minioInit.init();
+        System.out.println(requestParam.getUploadFileName());
+        System.out.println(requestParam.getObjectName());
+        File file = new File(requestParam.getUploadFileName());
+
+        InputStream inputStream = new FileInputStream(file);
+
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(requestParam.getBucketName())
+                        .object(requestParam.getObjectName())
+                        .stream(inputStream,file.length(),5 * 1024  * 1024)
+                        .build()
+        );
+
+        inputStream.close();
+    }
+
+
     // String bucketName, String objectName, String downloadPath
     @SneakyThrows
     @Override
     public void downloadFile(MinioDownloadReqDTO minioDownloadReqDTO) {
         MinioClient minioClient = minioInit.init();
+        log.info("开始单文件下载");
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+
         minioClient.downloadObject(
                 DownloadObjectArgs.builder()
                         .bucket(minioDownloadReqDTO.getBucketName())
@@ -47,6 +82,9 @@ public class MinioFileServiceImpl implements MinioFileService {
                         .filename(minioDownloadReqDTO.getDownloadPath() + "/" + minioDownloadReqDTO.getObjectName())
                         .build()
             );
+
+        stopWatch.stop();
+        System.out.println("完成单文件下载， 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
     }
 
 
@@ -104,6 +142,7 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     @SneakyThrows
     public void downloadAllFileOverwrite(MinioDownloadAllReqDTO requestParam){
+
         String bucketName = requestParam.getBucketName();
         String downloadPath = requestParam.getDownloadPath();
 
@@ -138,6 +177,10 @@ public class MinioFileServiceImpl implements MinioFileService {
     @SneakyThrows
     @Override
     public void shardingDownloadFile(MinioDownloadReqDTO requestParam){
+//        log.info("开始分片文件下载");
+//        StopWatch stopWatch = new StopWatch();
+//        stopWatch.start();
+
         String bucketName = requestParam.getBucketName();
         String objectName = requestParam.getObjectName();
         String downloadPath = requestParam.getDownloadPath();
@@ -153,7 +196,15 @@ public class MinioFileServiceImpl implements MinioFileService {
         // 目标大小
         long objectSize = statedObject.size();
         // 分片大小
-        long chunkSize = 1 * 1024 * 1024; // 4MB
+        long chunkSize = 80 * 1024 * 1024; // 4MB
+
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        500,
+        800,
+        10,
+        TimeUnit.DAYS,
+        new ArrayBlockingQueue<>(10),
+        new ThreadPoolExecutor.CallerRunsPolicy());
 
 
         // 线程分片下载线程
@@ -161,8 +212,12 @@ public class MinioFileServiceImpl implements MinioFileService {
                 = new MinioSharingFileManagementThread(minioClient,bucketName,objectName,downloadPath);
         minioSharingFileManagementThread.setChunkSize(chunkSize);
         minioSharingFileManagementThread.setObjectSize(objectSize);
-        minioSharingFileManagementThread.run();
+        threadPoolExecutor.execute(minioSharingFileManagementThread);
+//        minioSharingFileManagementThread.run();
 
+//        stopWatch.stop();
+//        log.info("完成分片文件下载, 文件大小为: " );
+//        System.out.println("下载大小为: " + objectSize / 1024 * 1024 + "MB " +   "总耗时为: " + stopWatch.getTotalTimeSeconds());
     }
 }
 
