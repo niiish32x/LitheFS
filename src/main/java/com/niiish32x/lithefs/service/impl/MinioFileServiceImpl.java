@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class MinioFileServiceImpl implements MinioFileService {
 
     private final MinioInit minioInit;
-    private final RBloomFilter<String> rBloomFilter;
+//    private final RBloomFilter<String> rBloomFilter;
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
@@ -79,14 +79,16 @@ public class MinioFileServiceImpl implements MinioFileService {
         Digester md5 = new Digester(DigestAlgorithm.MD5);
         File file = new File(requestParam.getUploadFileName());
         String digestHex = md5.digestHex(file);
-        if (rBloomFilter.contains(digestHex)){
+
+
+        if (stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex) != null){
             log.warn("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
 //            System.out.println();
             return;
         }
 
         String uploadURL = bucketName+ "/" +objectName;
-        rBloomFilter.add(digestHex);
+//        rBloomFilter.add(digestHex);
         // 存储 文件编码 对应 文件的放置的位置的URL 用于秒传操作时 直接输出文件具体位子
         stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
         // 存储 对象名 及其 对应编码 用于后续的删除操作
@@ -115,17 +117,16 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         File file = new File(requestParam.getUploadFileName());
 
-
         // 文件秒传传 判断
         Digester md5 = new Digester(DigestAlgorithm.MD5);
         String digestHex = md5.digestHex(file);
-        if (rBloomFilter.contains(digestHex)){
+        if (stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex) != null){
             log.warn("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
 //            System.out.println();
             return;
         }
         String uploadURL = bucketName+ "/" +objectName;
-        rBloomFilter.add(digestHex);
+//        rBloomFilter.add(digestHex);
         stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
 
         InputStream inputStream = new FileInputStream(file);
