@@ -11,13 +11,11 @@ import com.niiish32x.lithefs.service.MinioFileService;
 import com.niiish32x.lithefs.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.tools.IPAddressUtil;
 import com.niiish32x.lithefs.tools.MinioInit;
-import groovyjarjarantlr4.v4.runtime.misc.Args;
 import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RBloomFilter;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -30,9 +28,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -191,8 +186,67 @@ public class MinioFileServiceImpl implements MinioFileService {
         inputStream.close();
 
         lock.unlock();
+        System.out.println("xxx");
     }
 
+    @Override
+    @SneakyThrows
+    public void uploadFilePlus(MinioUploadReqDTO requestParam){
+        MinioClient minioClient = minioInit.init();
+        String bucketName = requestParam.getBucketName();
+        String objectName = requestParam.getObjectName();
+        String uploadFileName = requestParam.getUploadFileName();
+        Boolean isMultiPart = requestParam.getIsMultiPart();
+
+        File file = new File(requestParam.getUploadFileName());
+
+        // 上锁
+        RLock lock = uploadLock();
+        if (lock == null){
+            return;
+        }
+
+        log.info("开始文件上传任务");
+
+        // 文件秒传 判断
+        Digester md5 = new Digester(DigestAlgorithm.MD5);
+        String digestHex = md5.digestHex(file);
+        if (stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex) != null){
+            log.warn("文件已经上传在路径: " + stringRedisTemplate.opsForHash().get("MinioUploadFileHash",digestHex));
+            return;
+        }
+
+
+        String uploadURL = bucketName+ "/" +objectName;
+        stringRedisTemplate.opsForHash().put("MinioUploadFileHash",digestHex,uploadURL);
+
+
+        if (isMultiPart){
+            log.info("进行分片文件上传");
+            int partSize = requestParam.getPartSize() * 1024 * 1024;
+            InputStream inputStream = new FileInputStream(file);
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(inputStream,file.length(),partSize)
+                            .build()
+            );
+            inputStream.close();
+        }else{
+            log.info("整个文件直接上传");
+            minioClient.uploadObject(
+                    UploadObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .filename(uploadFileName)
+                            .build()
+            );
+        }
+
+        log.info("完成文件上传");
+        lock.unlock();
+    }
 
     // String bucketName, String objectName, String downloadPath
     @SneakyThrows

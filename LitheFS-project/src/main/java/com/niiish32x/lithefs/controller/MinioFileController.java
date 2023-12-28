@@ -39,14 +39,14 @@ public class MinioFileController {
 
     @PostMapping("/api/minio/upload")
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) {
-        minioFileService.uploadFile(requestParam);
+        minioFileService.uploadFilePlus(requestParam);
     }
 
 
-    @PostMapping("/api/minio/multiPartUpload")
-    public void MinioMultiPartUpload(@RequestBody MinioUploadReqDTO requestParam) {
-        minioFileService.multiPartUploadFile(requestParam);
-    }
+//    @PostMapping("/api/minio/multiPartUpload")
+//    public void MinioMultiPartUpload(@RequestBody MinioUploadReqDTO requestParam) {
+//        minioFileService.multiPartUploadFile(requestParam);
+//    }
 
     @DeleteMapping("/api/minio/remove")
     public void MinioRemoveFile(@RequestBody MinioRemoveFileDTO requestParam){

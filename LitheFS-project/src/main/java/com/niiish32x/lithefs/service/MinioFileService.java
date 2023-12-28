@@ -17,6 +17,9 @@ public interface MinioFileService {
     void multiPartUploadFile(MinioUploadReqDTO requestParam);
 
     @SneakyThrows
+    void uploadFilePlus(MinioUploadReqDTO requestParam);
+
+    @SneakyThrows
     void downloadFile(MinioDownloadReqDTO minioDownloadReqDTO);
 
 

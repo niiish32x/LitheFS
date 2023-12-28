@@ -9,13 +9,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 //@EnableScheduling
-//@MapperScan("com.niiish32x.lithefs.dao.mapper")
 
 // 这个必须是指定具体的mapper报名才可以顺利 否则就会报错
-@MapperScan("com.niiish32x.lithefs.dao.mapper")
+//@MapperScan("com.niiish32x.lithefs.dao.mapper")
 @SpringBootApplication
 public class LitheFsApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(LitheFsApplication.class, args);
 	}
