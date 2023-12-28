@@ -2,19 +2,24 @@ package com.niiish32x.lithefs.service.impl;
 
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
+import com.niiish32x.lithefs.common.RedisConfig;
 import com.niiish32x.lithefs.dto.req.MinioRemoveFileDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioDownloadReqDTO;
 import com.niiish32x.lithefs.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.service.MinioFileService;
 import com.niiish32x.lithefs.threads.MinioSharingFileManagementThread;
+import com.niiish32x.lithefs.tools.IPAddressUtil;
 import com.niiish32x.lithefs.tools.MinioInit;
+import groovyjarjarantlr4.v4.runtime.misc.Args;
 import io.minio.*;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -37,6 +42,30 @@ public class MinioFileServiceImpl implements MinioFileService {
     private final MinioInit minioInit;
 //    private final RBloomFilter<String> rBloomFilter;
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final RedisConfig redisConfig;
+
+
+    /**
+     * 在多机环境下进行上锁 确保同时只有一台机器可以执行文件上传任务
+     */
+    private RLock uploadLock(){
+        // 上锁保证多机情况情况下只有 一台主机执行上传任务
+        RedissonClient redissonClient = redisConfig.redissonClient();
+        // Redis 命名规则  请求资源:业务ID:lock
+        RLock lock = redissonClient.getLock("upload:1:lock");
+        boolean res = lock.tryLock();
+
+        if (!res){
+            log.warn("文件上传任务正在由其他机器执行");
+            return null;
+        }
+
+        String ipAddress = IPAddressUtil.getIPAddress();
+        log.info("文件上传正在由ip为:" + ipAddress + " 的机器在执行");
+
+        return lock;
+    }
 
     @Override
     @SneakyThrows
@@ -68,13 +97,22 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public void uploadFile(MinioUploadReqDTO requestParam) {
         MinioClient minioClient = minioInit.init();
+
+        log.info("开始文件上传");
+
         String fileName = requestParam.getUploadFileName();
         String bucketName = requestParam.getBucketName();
         String objectName = requestParam.getObjectName();
 
 
-        log.info("开始执行文件上传");
+        // 上锁
+        RLock lock = uploadLock();
+        if (lock == null){
+            return;
+        }
 
+
+        log.info("开始执行文件上传");
         // 文件秒传传 判断
         Digester md5 = new Digester(DigestAlgorithm.MD5);
         File file = new File(requestParam.getUploadFileName());
@@ -86,6 +124,8 @@ public class MinioFileServiceImpl implements MinioFileService {
 //            System.out.println();
             return;
         }
+
+
 
         String uploadURL = bucketName+ "/" +objectName;
 //        rBloomFilter.add(digestHex);
@@ -103,6 +143,9 @@ public class MinioFileServiceImpl implements MinioFileService {
         );
 
         log.info("完成文件上传");
+
+        // 释放锁
+        lock.unlock();
     }
 
 
@@ -116,6 +159,12 @@ public class MinioFileServiceImpl implements MinioFileService {
         log.info("开始执行分片文件上传");
 
         File file = new File(requestParam.getUploadFileName());
+
+        // 上锁
+        RLock lock = uploadLock();
+        if (lock == null){
+            return;
+        }
 
         // 文件秒传传 判断
         Digester md5 = new Digester(DigestAlgorithm.MD5);
@@ -140,6 +189,8 @@ public class MinioFileServiceImpl implements MinioFileService {
         );
 
         inputStream.close();
+
+        lock.unlock();
     }
 
 
