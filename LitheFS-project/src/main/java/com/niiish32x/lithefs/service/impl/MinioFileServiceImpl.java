@@ -42,6 +42,24 @@ public class MinioFileServiceImpl implements MinioFileService {
 
 
     /**
+     * 判断要上传bucket是否存在 如果不存在则直接创建
+     */
+    @SneakyThrows
+    private void bucketHelper(MinioClient minioClient,String bucketName){
+        boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder()
+                                .bucket(bucketName)
+                                .build());
+
+        if (!bucketExists){
+            log.warn("bucket: " + bucketName + "不存在，创建相应的bucket");
+
+            minioClient.makeBucket(MakeBucketArgs.builder()
+                    .bucket(bucketName)
+                    .build());
+        }
+    }
+
+    /**
      * 在多机环境下进行上锁 确保同时只有一台机器可以执行文件上传任务
      */
     private RLock uploadLock(){
@@ -99,6 +117,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         String bucketName = requestParam.getBucketName();
         String objectName = requestParam.getObjectName();
 
+        bucketHelper(minioClient,bucketName);
 
         // 上锁
         RLock lock = uploadLock();
@@ -153,6 +172,8 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         log.info("开始执行分片文件上传");
 
+        bucketHelper(minioClient,bucketName);
+
         File file = new File(requestParam.getUploadFileName());
 
         // 上锁
@@ -186,7 +207,6 @@ public class MinioFileServiceImpl implements MinioFileService {
         inputStream.close();
 
         lock.unlock();
-        System.out.println("xxx");
     }
 
     @Override
@@ -197,6 +217,8 @@ public class MinioFileServiceImpl implements MinioFileService {
         String objectName = requestParam.getObjectName();
         String uploadFileName = requestParam.getUploadFileName();
         Boolean isMultiPart = requestParam.getIsMultiPart();
+
+        bucketHelper(minioClient,bucketName);
 
         File file = new File(requestParam.getUploadFileName());
 
