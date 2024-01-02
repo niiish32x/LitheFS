@@ -1,0 +1,30 @@
+package com.niiish32x.lithefs.core.tools;
+
+import io.minio.MinioClient;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Data
+@Component
+@RequiredArgsConstructor
+public class MinioInit {
+    @Value("${minio.endpoint}")
+    private String endpoint;
+    @Value("${minio.accessKey}")
+    private String accessKey;
+    @Value("${minio.secretKey}")
+    private String secretKey;
+
+
+    public MinioClient init(){
+        MinioClient minioClient =
+                MinioClient.builder()
+                        .endpoint(endpoint)
+                        .credentials(accessKey, secretKey)
+                        .build();
+
+        return minioClient;
+    }
+}
