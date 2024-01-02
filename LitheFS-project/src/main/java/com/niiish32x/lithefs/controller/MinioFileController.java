@@ -10,34 +10,35 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/minio")
 public class MinioFileController {
     private final MinioFileService minioFileService;
-    @PostMapping("/api/minio/download")
+    @PostMapping("/download")
     public void MinioDownload(@RequestBody MinioDownloadReqDTO requestParam){
         minioFileService.downloadFile(requestParam);
     }
 
-    @PostMapping("/api/minio/downloadAll")
+    @PostMapping("/downloadAll")
     public void MinioDownloadAll(@RequestBody MinioDownloadAllReqDTO requestParam){
         minioFileService.downloadAllFile(requestParam);
     }
 
-    @PostMapping("/api/minio/downloadOverwrite")
+    @PostMapping("/downloadOverwrite")
     public void MinioDownloadOverwrite(@RequestBody MinioDownloadReqDTO requestParam){
         minioFileService.downloadFileOverwrite(requestParam);
     }
 
-    @PostMapping("/api/minio/downloadAllOverwrite")
+    @PostMapping("/downloadAllOverwrite")
     public void MinioDownloadAllOverwrite(@RequestBody MinioDownloadAllReqDTO requestParam){
         minioFileService.downloadAllFileOverwrite(requestParam);
     }
 
-    @PostMapping("/api/minio/shardingDownload")
+    @PostMapping("/shardingDownload")
     public void MinioShardingDownload(@RequestBody MinioDownloadReqDTO requestParam){
         minioFileService.shardingDownloadFile(requestParam);
     }
 
-    @PostMapping("/api/minio/upload")
+    @PostMapping("/upload")
     public void MinioUpload(@RequestBody MinioUploadReqDTO requestParam) {
         minioFileService.uploadFilePlus(requestParam);
     }
@@ -48,7 +49,7 @@ public class MinioFileController {
 //        minioFileService.multiPartUploadFile(requestParam);
 //    }
 
-    @DeleteMapping("/api/minio/remove")
+    @DeleteMapping("/remove")
     public void MinioRemoveFile(@RequestBody MinioRemoveFileDTO requestParam){
         minioFileService.removeFile(requestParam);
     }
