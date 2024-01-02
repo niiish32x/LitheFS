@@ -4,7 +4,7 @@ import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
 import com.niiish32x.lithefs.core.common.RedisConfig;
 import com.niiish32x.lithefs.core.dao.entity.UploadFileTaskDO;
-import com.niiish32x.lithefs.core.dao.mapper.UploadFIleTaskMapper;
+//import com.niiish32x.lithefs.core.dao.mapper.UploadFIleTaskMapper;
 import com.niiish32x.lithefs.core.req.MinioRemoveFileDTO;
 import com.niiish32x.lithefs.core.req.MinioDownloadAllReqDTO;
 import com.niiish32x.lithefs.core.req.MinioDownloadReqDTO;
@@ -12,6 +12,7 @@ import com.niiish32x.lithefs.core.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.core.service.MinioFileService;
 import com.niiish32x.lithefs.core.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.core.tools.IPAddressUtil;
+import com.niiish32x.lithefs.core.tools.MinioHelper;
 import com.niiish32x.lithefs.core.tools.MinioInit;
 import io.minio.*;
 import io.minio.messages.Item;
@@ -20,6 +21,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -38,41 +40,27 @@ public class MinioFileServiceImpl implements MinioFileService {
 
     private final MinioInit minioInit;
 //    private final RBloomFilter<String> rBloomFilter;
+
+//    private final UploadFIleTaskMapper uploadFIleTaskMapper;
+
+    // redis
     private final StringRedisTemplate stringRedisTemplate;
-    private final UploadFIleTaskMapper uploadFIleTaskMapper;
+    // redission配置
     private final RedisConfig redisConfig;
 
 
-    /**
-     * 判断要上传bucket是否存在 如果不存在则直接创建
-     */
-    @SneakyThrows
-    private void bucketHelper(MinioClient minioClient,String bucketName){
-        boolean bucketExists = minioClient.bucketExists(BucketExistsArgs.builder()
-                                .bucket(bucketName)
-                                .build());
-
-        if (!bucketExists){
-            log.warn("bucket: " + bucketName + "不存在，创建相应的bucket");
-
-            minioClient.makeBucket(MakeBucketArgs.builder()
-                    .bucket(bucketName)
-                    .build());
-        }
-    }
-
     @SneakyThrows
     private void addUploadFileLog(MinioUploadReqDTO uploadReqDTO,File file){
-        UploadFileTaskDO uploadFileTaskDO = UploadFileTaskDO.builder()
-                .bucketName(uploadReqDTO.getBucketName())
-                .objectName(file.getName())
-                .sourceFilePath(file.getPath())
-                .destFilePath(uploadReqDTO.getBucketName() + "/" + uploadReqDTO.getObjectName())
-                .isMultiPart(uploadReqDTO.getIsMultiPart())
-                .partSize(uploadReqDTO.getPartSize())
-                .fileSize((int) file.length())
-                .build();
-        uploadFIleTaskMapper.insert(uploadFileTaskDO);
+////        UploadFileTaskDO uploadFileTaskDO = UploadFileTaskDO.builder()
+//                .bucketName(uploadReqDTO.getBucketName())
+//                .objectName(file.getName())
+//                .sourceFilePath(file.getPath())
+//                .destFilePath(uploadReqDTO.getBucketName() + "/" + uploadReqDTO.getObjectName())
+//                .isMultiPart(uploadReqDTO.getIsMultiPart())
+//                .partSize(uploadReqDTO.getPartSize())
+//                .fileSize((int) file.length())
+//                .build();
+//        uploadFIleTaskMapper.insert(uploadFileTaskDO);
     }
 
     /**
@@ -133,7 +121,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         String bucketName = requestParam.getBucketName();
         String objectName = requestParam.getObjectName();
 
-        bucketHelper(minioClient,bucketName);
+        MinioHelper.bucketHelper(minioClient,bucketName);
 
         // 上锁
         RLock lock = uploadLock();
@@ -193,7 +181,7 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         log.info("开始执行分片文件上传");
 
-        bucketHelper(minioClient,bucketName);
+        MinioHelper.bucketHelper(minioClient,bucketName);
 
         File file = new File(requestParam.getUploadFileName());
 
@@ -244,7 +232,7 @@ public class MinioFileServiceImpl implements MinioFileService {
         String uploadFileName = requestParam.getUploadFileName();
         Boolean isMultiPart = requestParam.getIsMultiPart();
 
-        bucketHelper(minioClient,bucketName);
+        MinioHelper.bucketHelper(minioClient,bucketName);
 
         File file = new File(requestParam.getUploadFileName());
 
@@ -299,6 +287,8 @@ public class MinioFileServiceImpl implements MinioFileService {
         log.info("记录写入完成");
 
         lock.unlock();
+
+
     }
 
     // String bucketName, String objectName, String downloadPath
@@ -320,6 +310,7 @@ public class MinioFileServiceImpl implements MinioFileService {
 
 //        stopWatch.stop();
         System.out.println("完成单文件下载， 耗时:" + stopWatch.getTotalTimeSeconds() + "秒");
+
     }
 
 
@@ -356,6 +347,8 @@ public class MinioFileServiceImpl implements MinioFileService {
         String objectName = requestParam.getObjectName();
         String downloadPath = requestParam.getDownloadPath();
 
+        MinioHelper.downloadFilePathHelper(downloadPath);
+
         MinioClient minioClient = minioInit.init();
         Path targetFile = Paths.get(downloadPath + "/" + objectName);
         if (Files.exists(targetFile)){
@@ -371,6 +364,9 @@ public class MinioFileServiceImpl implements MinioFileService {
                         .filename(downloadPath + "/" + objectName)
                         .build()
         );
+
+        // 完成文件上传后 发送消息
+//        rabbitTemplate.convertAndSend("minio.topic","download.success","完成文件下载");
     }
 
 
@@ -380,6 +376,8 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         String bucketName = requestParam.getBucketName();
         String downloadPath = requestParam.getDownloadPath();
+
+        MinioHelper.downloadFilePathHelper(downloadPath);
 
         MinioClient minioClient = minioInit.init();
 
@@ -420,6 +418,8 @@ public class MinioFileServiceImpl implements MinioFileService {
         String objectName = requestParam.getObjectName();
         String downloadPath = requestParam.getDownloadPath();
 
+        MinioHelper.downloadFilePathHelper(downloadPath);
+
         MinioClient minioClient = minioInit.init();
         StatObjectResponse statedObject = minioClient.statObject(
                 StatObjectArgs.builder()
@@ -443,6 +443,8 @@ public class MinioFileServiceImpl implements MinioFileService {
 //        threadPoolExecutor.execute(minioSharingFileManagementThread);
 
         log.info("完成分片下载");
+        // 完成文件上传后 发送消息
+//        rabbitTemplate.convertAndSend("minio.topic","download.success","完成文件下载");
 
 //        minioSharingFileManagementThread.run();
 

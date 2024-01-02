@@ -10,9 +10,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 // 这个必须是指定具体的mapper报名才可以顺利 否则就会报错
 @MapperScan("com.niiish32x.lithefs.core.dao.mapper")
 @SpringBootApplication
-public class LitheFsApplication {
+public class LitheFSCoreApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(LitheFsApplication.class, args);
+		SpringApplication.run(LitheFSCoreApplication.class, args);
 	}
 
 }
