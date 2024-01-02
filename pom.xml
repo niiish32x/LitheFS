@@ -23,9 +23,12 @@
 		<java.version>17</java.version>
 		<mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
 		<mybatis-plus.version>3.5.3.1</mybatis-plus.version>
-		<spring-boot-starter-jdbc.version>3.1.0</spring-boot-starter-jdbc.version>
-		<spring-data-redis.version>3.1.0</spring-data-redis.version>
+
+		<!-- springboot 依赖版本规约-->
+		<spring-boot.version>3.1.0</spring-boot.version>
+
 		<redisson-spring-boot-starter.version>3.25.2</redisson-spring-boot-starter.version>
+
 		<mysql-connector-java.version>8.0.28</mysql-connector-java.version>
 		<minio.version>8.3.4</minio.version>
 		<hutool-all.version>5.8.23</hutool-all.version>
@@ -38,11 +41,122 @@
 		<spring-boot-starter-test.version>3.2.0</spring-boot-starter-test.version>
 
 		<org.junit.jupiter.version>5.10.1</org.junit.jupiter.version>
+
+		<jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
 	</properties>
 
-	<dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<!-- springboot 依赖			-->
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 
-	</dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-jdbc</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-redis</artifactId>
+				<version>${spring-boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+
+
+			<dependency>
+				<groupId>io.minio</groupId>
+				<artifactId>minio</artifactId>
+				<version>${minio.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>cn.hutool</groupId>
+				<artifactId>hutool-all</artifactId>
+				<version>${hutool-all.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus-extension</artifactId>
+				<version>${mybatis-plus.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.baomidou</groupId>
+				<artifactId>mybatis-plus-boot-starter</artifactId>
+				<version>${mybatis-spring-boot-starter.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+
+
+
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${mysql-connector-java.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.shardingsphere</groupId>
+				<artifactId>shardingsphere-jdbc-core</artifactId>
+				<version>${sharding-sphere.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+
+
+
+			<dependency>
+				<groupId>org.redisson</groupId>
+				<artifactId>redisson-spring-boot-starter</artifactId>
+				<version>${redisson-spring-boot-starter.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+
+			<dependency>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>${jakarta.validation-api.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+
+		</dependencies>
+
+	</dependencyManagement>
 
 	<build>
 		<plugins>
