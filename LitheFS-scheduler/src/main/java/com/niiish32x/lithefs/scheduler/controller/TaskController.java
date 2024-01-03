@@ -1,6 +1,7 @@
 package com.niiish32x.lithefs.scheduler.controller;
 
 import com.niiish32x.lithefs.scheduler.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.scheduler.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.scheduler.service.impl.MinioTaskServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -13,5 +14,10 @@ public class TaskController {
     @PostMapping("/minioDownload")
     public void minioDownloadTask(@RequestBody MinioDownloadReqDTO requestParam){
         minioTaskService.startDownloadFileTask(requestParam);
+    }
+
+    @PostMapping("/minioDownload")
+    public void minioUploadTask(@RequestBody MinioUploadReqDTO requestParam){
+        minioTaskService.startUploadFileTask(requestParam);
     }
 }

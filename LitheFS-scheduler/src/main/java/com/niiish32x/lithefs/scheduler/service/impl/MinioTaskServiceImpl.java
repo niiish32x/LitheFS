@@ -1,6 +1,7 @@
 package com.niiish32x.lithefs.scheduler.service.impl;
 
 import com.niiish32x.lithefs.scheduler.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.scheduler.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.scheduler.remote.MinioServiceClient;
 import com.niiish32x.lithefs.scheduler.service.MinioTaskService;
 import lombok.RequiredArgsConstructor;
@@ -21,4 +22,13 @@ public class MinioTaskServiceImpl implements MinioTaskService {
         minioServiceClient.download(requestParam);
         log.info("服务调用完毕");
     }
+
+    @Override
+    public void startUploadFileTask(MinioUploadReqDTO requestParam){
+        log.info("开启下载任务");
+        log.info("开始调用服务");
+        minioServiceClient.upload(requestParam);
+        log.info("服务调用完毕");
+    }
+
 }
