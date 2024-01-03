@@ -1,6 +1,6 @@
 package com.niiish32x.lithefs.core.task;
 
-import com.niiish32x.lithefs.core.req.MinioUploadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.core.service.MinioFileService;
 import com.niiish32x.lithefs.core.tools.MinioInit;
 import lombok.RequiredArgsConstructor;

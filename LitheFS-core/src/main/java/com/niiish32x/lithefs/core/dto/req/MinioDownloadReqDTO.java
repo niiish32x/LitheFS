@@ -1,4 +1,4 @@
-package com.niiish32x.lithefs.core.req;
+package com.niiish32x.lithefs.core.dto.req;
 
 import lombok.Data;
 

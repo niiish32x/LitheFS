@@ -2,6 +2,8 @@ server:
   port: 8088
 
 spring:
+  application:
+    name: core
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -11,6 +13,18 @@ spring:
     redis:
       host: 10.12.41.201
       port: 6379
+  rabbitmq:
+    host: 192.168.118.129
+    port: 5672
+    virtual-host: /minio
+    username: test
+    password: 123456
+
+  cloud:
+    nacos:
+      server-addr: 192.168.118.129:8848
+
+
 
 # MinIO 配置
 minio:

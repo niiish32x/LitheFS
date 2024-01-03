@@ -1,10 +1,11 @@
 package com.niiish32x.lithefs.core.service;
 
-import com.niiish32x.lithefs.core.req.MinioDownloadAllReqDTO;
-import com.niiish32x.lithefs.core.req.MinioDownloadReqDTO;
-import com.niiish32x.lithefs.core.req.MinioRemoveFileDTO;
-import com.niiish32x.lithefs.core.req.MinioUploadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadAllReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioRemoveFileDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioUploadReqDTO;
 import lombok.SneakyThrows;
+
 
 public interface MinioFileService {
     @SneakyThrows

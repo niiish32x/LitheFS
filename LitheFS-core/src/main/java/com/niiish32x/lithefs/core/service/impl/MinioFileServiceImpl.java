@@ -3,12 +3,11 @@ package com.niiish32x.lithefs.core.service.impl;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
 import com.niiish32x.lithefs.core.common.RedisConfig;
-import com.niiish32x.lithefs.core.dao.entity.UploadFileTaskDO;
 //import com.niiish32x.lithefs.core.dao.mapper.UploadFIleTaskMapper;
-import com.niiish32x.lithefs.core.req.MinioRemoveFileDTO;
-import com.niiish32x.lithefs.core.req.MinioDownloadAllReqDTO;
-import com.niiish32x.lithefs.core.req.MinioDownloadReqDTO;
-import com.niiish32x.lithefs.core.req.MinioUploadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioRemoveFileDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadAllReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.core.service.MinioFileService;
 import com.niiish32x.lithefs.core.threads.MinioSharingFileManagementThread;
 import com.niiish32x.lithefs.core.tools.IPAddressUtil;
@@ -48,7 +47,8 @@ public class MinioFileServiceImpl implements MinioFileService {
     // redission配置
     private final RedisConfig redisConfig;
 
-
+    // 消息队列
+    private final RabbitTemplate rabbitTemplate;
     @SneakyThrows
     private void addUploadFileLog(MinioUploadReqDTO uploadReqDTO,File file){
 ////        UploadFileTaskDO uploadFileTaskDO = UploadFileTaskDO.builder()
@@ -444,7 +444,7 @@ public class MinioFileServiceImpl implements MinioFileService {
 
         log.info("完成分片下载");
         // 完成文件上传后 发送消息
-//        rabbitTemplate.convertAndSend("minio.topic","download.success","完成文件下载");
+        rabbitTemplate.convertAndSend("minio.topic","download.success","收到消息 完成文件下载");
 
 //        minioSharingFileManagementThread.run();
 

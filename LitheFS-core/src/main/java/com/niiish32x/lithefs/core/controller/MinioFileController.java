@@ -1,9 +1,9 @@
 package com.niiish32x.lithefs.core.controller;
 
-import com.niiish32x.lithefs.core.req.MinioDownloadAllReqDTO;
-import com.niiish32x.lithefs.core.req.MinioDownloadReqDTO;
-import com.niiish32x.lithefs.core.req.MinioRemoveFileDTO;
-import com.niiish32x.lithefs.core.req.MinioUploadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadAllReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioDownloadReqDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioRemoveFileDTO;
+import com.niiish32x.lithefs.core.dto.req.MinioUploadReqDTO;
 import com.niiish32x.lithefs.core.service.MinioFileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
